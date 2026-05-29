@@ -1095,9 +1095,27 @@ function exportExcelForPA(){
     '落差百分比': e.gap_pct + '%',
     '主管信箱': ''
   }));
+
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '發信名單');
+  XLSX.utils.book_append_sheet(wb, ws, 'HighRiskData');
+
+  // 建立真正的 Excel Table，讓 Power Automate「列出表格資料列」能直接辨識
+  // 欄數固定 7（A~G），列數 = 資料筆數 + 1 標題列
+  const colCount = 7;
+  const lastRow  = rows.length + 1;
+  const lastCol  = XLSX.utils.encode_col(colCount - 1); // "G"
+  ws['!ref'] = `A1:${lastCol}${lastRow}`;
+
+  // SheetJS 用 !tables 陣列宣告 Table 定義
+  ws['!tables'] = [{
+    name:        'HighRiskList',   // PA 裡選表格時顯示的名稱
+    ref:         `A1:${lastCol}${lastRow}`,
+    headerRow:   true,
+    totalsRow:   false,
+    tableStyleInfo: { name: 'TableStyleMedium9', showRowStripes: true }
+  }];
+
   XLSX.writeFile(wb, `高風險自動發信名單_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
