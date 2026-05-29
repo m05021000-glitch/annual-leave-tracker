@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>艾立供應鏈 年假使用率監控儀表板</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0ede8;--border:#e2ddd6;--border2:#ccc8c0;
+  --text:#1a1917;--text2:#5c5a56;--text3:#9c9a94;
+  --red:#c0392b;--red-bg:#fdf0ee;--red-bd:#f5c6c0;
+  --amber:#9a6a00;--amber-bg:#fdf6e3;--amber-bd:#f5e0a0;
+  --green:#1a7a4a;--green-bg:#edf7f1;--green-bd:#a8dfc0;
+  --blue:#1a5fa8;--blue-bg:#edf3fc;--blue-bd:#a8c8f0;
+  --purple:#5a3fa8;--purple-bg:#f0edfb;--purple-bd:#c8b8f0;
+  --r:8px;--rl:12px;
+  --font:'Noto Sans TC',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.shell{max-width:1400px;margin:0 auto;padding:20px}
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.org{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;border-right:1px solid var(--border);padding-right:10px}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-date{font-size:11px;color:var(--text3)}
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:22px;overflow-x:auto;gap:0}
+.tab{font-size:13px;padding:9px 16px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all .15s}
+.tab.active{color:var(--text);border-bottom-color:var(--text)}
+.tab:hover{color:var(--text)}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
+.kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.kpi-val{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1}
+.kpi-val.red{color:var(--red)}.kpi-val.amber{color:var(--amber)}.kpi-val.green{color:var(--green)}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-title .sub{font-weight:400;color:var(--text3);font-size:12px}
+.card-title .beta{font-size:10px;padding:2px 7px;border-radius:20px;background:#fff3cd;color:#856404;border:1px solid #ffc107;font-weight:600}
+/* Grid layouts */
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+/* Pie */
+.pie-wrap{display:flex;gap:14px;align-items:flex-start}
+.pie-legend{flex:1;min-width:0}
+.pli{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;transition:background .1s}
+.pli:hover{background:var(--surface2)}
+.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.pname{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pval{font-size:12px;font-weight:700;font-family:var(--mono)}
+.ppct{font-size:11px;color:var(--text3);margin-left:2px}
+.subdept-box{margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)}
+.subdept-title{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.sdr{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.sdname{width:120px;flex-shrink:0;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdtrack{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.sdfill{height:100%;border-radius:4px}
+.sdval{font-size:11px;color:var(--text2);width:36px;text-align:right;font-family:var(--mono)}
+/* Bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bar-label{font-size:12px;color:var(--text2);width:72px;flex-shrink:0;font-weight:500}
+.bar-track{flex:1;height:11px;background:var(--surface2);border-radius:5px;position:relative;overflow:visible}
+.bar-fill{height:100%;border-radius:5px}
+.bar-marker{position:absolute;top:-3px;width:2px;height:17px;background:var(--text3);border-radius:1px}
+.bar-pct{font-size:12px;width:44px;text-align:right;font-family:var(--mono);font-weight:600}
+/* Progress ref */
+.pref-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px 0;display:inline-flex;align-items:center;gap:4px}
+.pref-btn:hover{text-decoration:underline}
+.pref-box{display:none;margin-top:10px;padding:10px 12px;background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:var(--r)}
+.pref-box.open{display:block}
+.month-pills{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.mpill{font-size:11px;padding:3px 8px;border-radius:20px;font-family:var(--mono);font-weight:500;border:1px solid transparent}
+.mpill.cur{background:var(--blue);color:#fff}.mpill.past{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-bd)}.mpill.fut{background:var(--surface2);color:var(--text3);border-color:var(--border)}
+/* Table */
+.toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.toolbar input,.toolbar select{font-size:12px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);font-family:var(--font)}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--blue)}
+.spacer{flex:1}
+.btn{font-size:12px;padding:6px 14px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:background .1s}
+.btn:hover{background:var(--surface2)}
+.btn-red{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.btn-red:hover{background:#fbe6e3}
+.btn-blue{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue)}
+.btn-blue:hover{background:#e0ecfb}
+.btn-green{background:var(--green-bg);border-color:var(--green-bd);color:var(--green)}
+.tbl-wrap{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;font-size:12px;border-collapse:collapse}
+th{background:var(--surface2);padding:8px 10px;text-align:left;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;letter-spacing:.02em;cursor:pointer;user-select:none}
+th:hover{background:var(--border)}
+th.nosort{cursor:default}th.nosort:hover{background:var(--surface2)}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap;margin-right:2px;line-height:1.5}
+.b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.b-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.b-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.b-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd)}
+/* Pagination */
+.pg{display:flex;align-items:center;gap:5px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap}
+.pgb{font-size:12px;padding:4px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text2)}
+.pgb:hover:not(:disabled){background:var(--surface2)}
+.pgb:disabled{opacity:.4;cursor:not-allowed}
+.pgb.on{background:var(--text);color:#fff;border-color:var(--text)}
+.pg-info{font-size:11px;color:var(--text3);margin-right:4px}
+/* Thermometer */
+.thermo-wrap{margin-bottom:10px}
+.thermo-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.thermo-lbl{font-size:12px;font-weight:600;width:70px;flex-shrink:0}
+.thermo-track{flex:1;height:16px;background:var(--surface2);border-radius:8px;position:relative;border:1px solid var(--border);overflow:visible}
+.th-used{position:absolute;top:0;left:0;height:100%;background:#378add;border-radius:8px 0 0 8px}
+.th-pred{position:absolute;top:0;height:100%;background:#b5d4f4}
+.th-now{position:absolute;top:-4px;width:2px;height:24px;background:var(--text);border-radius:1px;z-index:3}
+.th-ideal{position:absolute;top:-4px;width:2px;height:24px;background:var(--green);border-radius:1px;z-index:2;opacity:.7}
+.thermo-rval{font-size:11px;width:120px;flex-shrink:0;text-align:right;font-family:var(--mono)}
+.thermo-rval.bad{color:var(--red)}.thermo-rval.warn{color:var(--amber)}.thermo-rval.ok{color:var(--green)}
+.th-legend{display:flex;gap:14px;font-size:11px;color:var(--text3);margin-bottom:12px;flex-wrap:wrap}
+.thl-rect{display:inline-block;width:14px;height:8px;border-radius:3px;margin-right:4px;vertical-align:middle}
+/* Upload */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--rl);padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:var(--blue-bg)}
+.upload-zone input{display:none}
+.upload-label{font-size:13px;color:var(--text2);display:block;margin-bottom:6px}
+.upload-sub{font-size:11px;color:var(--text3)}
+.upload-list{margin-top:14px}
+.upload-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:var(--r);margin-bottom:6px;font-size:12px}
+.upload-item .fname{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upload-item .fstatus{font-size:11px;color:var(--green)}
+.upload-item .ferr{font-size:11px;color:var(--red)}
+.upload-progress{height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.upload-progress-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .3s}
+.merge-log{margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--r);font-size:11px;color:var(--text2);max-height:120px;overflow-y:auto}
+/* Zero notice */
+.zero-notice{padding:10px 14px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);margin-bottom:14px;font-size:12px;color:var(--amber)}
+/* Responsive */
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+@media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}.thermo-lbl{width:50px}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="topbar">
+  <span class="org">艾立供應鏈</span>
+  <span class="topbar-title">年假使用率監控儀表板</span>
+  <div class="topbar-right">
+    <span class="topbar-date" id="topbar-date">資料截至 2026/05/26</span>
+    <span id="topbar-lastupload" style="font-size:11px;color:var(--text3)"></span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview',this)">總覽</div>
+  <div class="tab" onclick="showTab('riskA',this)">狀況 A — 高風險</div>
+  <div class="tab" onclick="showTab('riskB',this)">狀況 B — 提醒</div>
+  <div class="tab" onclick="showTab('zero',this)">已休 0，請確認</div>
+  <div class="tab" onclick="showTab('predict',this)">年底預測 BETA</div>
+  <div class="tab" onclick="showTab('maintain',this)">資料維護</div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="tab-overview">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">納入計算人數</div><div class="kpi-val" id="k-total">—</div><div class="kpi-sub">年度可休 &gt; 0 者</div></div>
+    <div class="kpi"><div class="kpi-label">高風險人數</div><div class="kpi-val red" id="k-risk">—</div><div class="kpi-sub">落差 &gt; 20%（5月門檻）</div></div>
+    <div class="kpi"><div class="kpi-label">已休 0，請確認</div><div class="kpi-val amber" id="k-zero">—</div><div class="kpi-sub">尚未有任何休假紀錄</div></div>
+    <div class="kpi"><div class="kpi-label">延長假未消化</div><div class="kpi-val amber" id="k-ext">—</div><div class="kpi-sub">年底到期恐換代金</div></div>
+    <div class="kpi"><div class="kpi-label">全員平均已休進度</div><div class="kpi-val" id="k-avg">—</div><div class="kpi-sub" id="k-avg-sub">—</div></div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-title">高風險人數 <span class="sub">各部門</span></div>
+      <div id="pie1-wrap" class="pie-wrap"></div>
+      <div id="pie1-sub" style="display:none" class="subdept-box"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">平均未休比例 <span class="sub">各部門</span></div>
+      <div id="pie2-wrap" class="pie-wrap"></div>
+      <div id="pie2-sub" style="display:none" class="subdept-box"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">延長假未消化時數 <span class="sub">各部門</span></div>
+      <div id="pie3-wrap" class="pie-wrap"></div>
+      <div id="pie3-sub" style="display:none" class="subdept-box"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">各部門已休進度 vs 時間進度（5月 41.7%）</div>
+    <div id="pref-wrap">
+      <button class="pref-btn" onclick="togglePref()">▸ 1–12月進度參考表</button>
+      <div class="pref-box" id="pref-box">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px">各月份理想進度 = 月份 ÷ 12。已休進度達到或超過即代表正常。</div>
+        <div class="month-pills" id="month-pills"></div>
+      </div>
+    </div>
+    <div style="margin-top:14px" id="dept-bars"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">灰色線 = 5月時間進度（41.7%）。條狀短於灰線代表進度落後。</div>
+  </div>
+</div>
+
+<!-- RISK A -->
+<div id="tab-riskA" style="display:none">
+  <div class="card">
+    <div class="card-title">狀況 A — 高風險 <span class="sub">落差 &gt; 20%，共 <span id="cnt-riskA">0</span> 人</span></div>
+    <div class="toolbar">
+      <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="renderRiskA()">
+      <select id="f-riskA-dept" onchange="renderRiskA()"><option value="">全部部門</option></select>
+      <select id="f-riskA-wh" onchange="renderRiskA()"><option value="">全部倉別</option></select>
+      <select id="f-riskA-exp" onchange="renderRiskA()"><option value="">全部</option><option value="1">延長假到期</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-red" onclick="exportExcelForPA()">⬇ 下載發信 Excel</button>
+      <a href="https://allylstw.sharepoint.com/:f:/s/ALS_HR/IgDBm0kJcffPRar61A07uOuDAQRJBQDmyoDF3qJ5Yg2sksY?e=SsIgAi" target="_blank" class="btn btn-blue" style="text-decoration:none; display:inline-flex; align-items:center;">📂 前往發信觸發區</a>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+      <table><thead><tr>
+        <th class="nosort"><input type="checkbox" id="ckA" onchange="ckAll('A',this.checked)"></th>
+        <th onclick="srt('riskA','emp_id')">員編</th>
+        <th onclick="srt('riskA','name')">姓名</th>
+        <th onclick="srt('riskA','dept_name')">部門</th>
+        <th onclick="srt('riskA','warehouse')">倉別</th>
+        <th onclick="srt('riskA','total_entitled')">年度可休(h)</th>
+        <th onclick="srt('riskA','used_hours')">已休(h)</th>
+        <th onclick="srt('riskA','remaining')">未休(h)</th>
+        <th onclick="srt('riskA','gap_pct')">落差</th>
+        <th class="nosort">標籤</th>
+      </tr></thead><tbody id="tb-riskA"></tbody></table>
+    </div></div>
+    <div class="pg" id="pg-riskA"></div>
+  </div>
+</div>
+
+<!-- RISK B -->
+<div id="tab-riskB" style="display:none">
+  <div class="card">
+    <div class="card-title">狀況 B — 正常（可發提醒） <span class="sub">共 <span id="cnt-riskB">0</span> 人</span></div>
+    <div class="toolbar">
+      <input placeholder="搜尋姓名 / 員編" id="f-riskB-q" oninput="renderRiskB()">
+      <select id="f-riskB-dept" onchange="renderRiskB()"><option value="">全部部門</option></select>
+      <select id="f-riskB-wh" onchange="renderRiskB()"><option value="">全部倉別</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-blue">✉ 批次發溫馨提醒信</button>
+      <button class="btn" onclick="exportCSV('riskB')">↓ 匯出 CSV</button>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+      <table><thead><tr>
+        <th class="nosort"><input type="checkbox" id="ckB" onchange="ckAll('B',this.checked)"></th>
+        <th onclick="srt('riskB','emp_id')">員編</th>
+        <th onclick="srt('riskB','name')">姓名</th>
+        <th onclick="srt('riskB','dept_name')">部門</th>
+        <th onclick="srt('riskB','warehouse')">倉別</th>
+        <th onclick="srt('riskB','total_entitled')">年度可休(h)</th>
+        <th onclick="srt('riskB','used_hours')">已休(h)</th>
+        <th onclick="srt('riskB','remaining')">未休(h)</th>
+        <th onclick="srt('riskB','gap_pct')">落差</th>
+        <th class="nosort">標籤</th>
+      </tr></thead><tbody id="tb-riskB"></tbody></table>
+    </div></div>
+    <div class="pg" id="pg-riskB"></div>
+  </div>
+</div>
+
+<!-- ZERO -->
+<div id="tab-zero" style="display:none">
+  <div class="card">
+    <div class="zero-notice">⚠ 以下人員已休時數為 0，系統無法判斷原因，請主管逐一確認是否已有排休計畫，或確認資料是否正確。</div>
+    <div class="card-title">已休 0，請主管確認 <span class="sub">共 <span id="cnt-zero">0</span> 人，不納入預測計算</span></div>
+    <div class="toolbar">
+      <input placeholder="搜尋姓名 / 員編" id="f-zero-q" oninput="renderZero()">
+      <select id="f-zero-dept" onchange="renderZero()"><option value="">全部部門</option></select>
+      <select id="f-zero-wh" onchange="renderZero()"><option value="">全部倉別</option></select>
+      <div class="spacer"></div>
+      <button class="btn" onclick="exportCSV('zero')">↓ 匯出 CSV</button>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+      <table><thead><tr>
+        <th onclick="srt('zero','emp_id')">員編</th>
+        <th onclick="srt('zero','name')">姓名</th>
+        <th onclick="srt('zero','dept_name')">部門</th>
+        <th onclick="srt('zero','warehouse')">倉別</th>
+        <th onclick="srt('zero','total_entitled')">年度可休(h)</th>
+        <th onclick="srt('zero','ext_hours')">延長假(h)</th>
+        <th onclick="srt('zero','join_date')">到職日</th>
+        <th onclick="srt('zero','seniority')">年資</th>
+        <th class="nosort">標籤</th>
+      </tr></thead><tbody id="tb-zero"></tbody></table>
+    </div></div>
+    <div class="pg" id="pg-zero"></div>
+  </div>
+</div>
+
+<!-- PREDICT -->
+<div id="tab-predict" style="display:none">
+  <div class="kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpi"><div class="kpi-label">預估全員年底剩餘</div><div class="kpi-val red" id="p-total-h">—</div><div class="kpi-sub" id="p-total-d"></div></div>
+    <div class="kpi"><div class="kpi-label">其中延長假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
+    <div class="kpi"><div class="kpi-label">排除人數（已休 0）</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">不納入速度推算</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span></div>
+    <div class="th-legend">
+      <span><span class="thl-rect" style="background:#378add"></span>已休</span>
+      <span><span class="thl-rect" style="background:#b5d4f4"></span>預測下半年可再休</span>
+      <span><span class="thl-rect" style="background:var(--surface2);border:1px solid var(--border)"></span>預測年底仍剩</span>
+      <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（5月）</span>
+      <span><span style="display:inline-block;width:2px;height:10px;background:var(--green);vertical-align:middle;opacity:.7;margin:0 3px"></span>理想（年底清零）</span>
+    </div>
+    <div id="thermo-rows"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休0者不納入。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">全公司燃盡圖 — 未休時數趨勢 <span class="beta">BETA</span></div>
+    <canvas id="burndown" style="width:100%;height:220px"></canvas>
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--text3);margin-top:8px;flex-wrap:wrap">
+      <span>─── 藍線：實際（1–5月）＋預測趨勢（6–12月）</span>
+      <span>- - - 綠線：理想均速消化（年底歸零）</span>
+      <span>│ 灰線：現在（5月）</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAINTAIN -->
+<div id="tab-maintain" style="display:none">
+  <!-- Upload section -->
+  <div class="card">
+    <div class="card-title">上傳新資料
+      <span class="sub">支援 CSV / Excel（.xlsx）；同員編自動覆蓋，新員編自動新增，其他部門資料保留</span>
+      <button class="btn" style="margin-left:auto" onclick="downloadTemplate()">↓ 下載標準模板 CSV</button>
+    </div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" multiple onchange="handleFiles(this.files)">
+      <span class="upload-label">點此選擇檔案，或拖曳至此</span>
+      <span class="upload-sub">支援同時上傳多個檔案（CSV 或 Excel）</span>
+    </div>
+    <div class="upload-list" id="upload-list"></div>
+    <div class="merge-log" id="merge-log" style="display:none"></div>
+  </div>
+
+  <!-- Data table -->
+  <div class="card">
+    <div class="card-title">全部資料 <span class="sub">共 <span id="cnt-maintain">0</span> 人，每頁 20 筆</span></div>
+    <div class="toolbar">
+      <input placeholder="搜尋姓名 / 員編" id="f-mt-q" oninput="renderMaintain()">
+      <select id="f-mt-dept" onchange="renderMaintain()"><option value="">全部部門</option></select>
+      <select id="f-mt-wh" onchange="renderMaintain()"><option value="">全部倉別</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-blue">＋ 新增單筆</button>
+      <button class="btn">✎ 編輯選取</button>
+      <button class="btn">⊗ 刪除選取</button>
+      <button class="btn" onclick="exportCSV('all')">↓ 匯出全部 CSV</button>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+      <table><thead><tr>
+        <th class="nosort"><input type="checkbox"></th>
+        <th onclick="srt('maintain','emp_id')">員編</th>
+        <th onclick="srt('maintain','name')">姓名</th>
+        <th onclick="srt('maintain','dept_name')">部門</th>
+        <th onclick="srt('maintain','warehouse')">倉別</th>
+        <th onclick="srt('maintain','annual_hours')">當年度(h)</th>
+        <th onclick="srt('maintain','ext_hours')">延長假(h)</th>
+        <th onclick="srt('maintain','total_entitled')">合計可休(h)</th>
+        <th onclick="srt('maintain','used_hours')">已休(h)</th>
+        <th onclick="srt('maintain','remaining')">未休(h)</th>
+        <th class="nosort">操作</th>
+      </tr></thead><tbody id="tb-maintain"></tbody></table>
+    </div></div>
+    <div class="pg" id="pg-maintain"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:10px">延長假已自動與當年度假合併計算。上傳新資料後頁面即時更新，重新整理頁面後恢復初始資料（SharePoint 版本可持久化）。</div>
+  </div>
+</div>
+
+</div><!-- shell -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+// ===== DATA (injected) =====
+const INIT_DATA = {"summary": {"total": 241, "high_risk": 47, "zero_used": 86, "normal": 108, "ext_total_h": 7207.0, "ext_total_days": 900.9, "avg_used_pct": 24.7, "time_progress_pct": 41.7, "current_month": 5}, "warehouse_stats": {"MF": {"total": 37, "high_risk": 3, "normal": 17, "zero": 17, "total_h": 3750.5, "used_h": 708.5, "ext_h": 524.5, "predict_h": 2309.5000000000005}, "B3": {"total": 32, "high_risk": 3, "normal": 19, "zero": 10, "total_h": 4366.0, "used_h": 1060.0, "ext_h": 1010.0, "predict_h": 2420.8999999999996}, "HA": {"total": 11, "high_risk": 3, "normal": 4, "zero": 4, "total_h": 1438.5, "used_h": 174.5, "ext_h": 339.5, "predict_h": 1019.6999999999999}, "HASS": {"total": 22, "high_risk": 8, "normal": 6, "zero": 8, "total_h": 2597.0, "used_h": 338.5, "ext_h": 527.0, "predict_h": 1815.9}, "WS": {"total": 24, "high_risk": 3, "normal": 10, "zero": 11, "total_h": 4220.5, "used_h": 709.5, "ext_h": 1429.5, "predict_h": 2840.1000000000004}, "EC": {"total": 28, "high_risk": 6, "normal": 15, "zero": 7, "total_h": 3944.5, "used_h": 842.0, "ext_h": 933.5, "predict_h": 2306.5}, "DY1F": {"total": 33, "high_risk": 7, "normal": 17, "zero": 9, "total_h": 4110.0, "used_h": 1145.0, "ext_h": 841.0, "predict_h": 2276.0}, "B9": {"total": 13, "high_risk": 3, "normal": 4, "zero": 6, "total_h": 1846.0, "used_h": 202.5, "ext_h": 658.0, "predict_h": 1434.0}, "DY2F": {"total": 13, "high_risk": 3, "normal": 5, "zero": 5, "total_h": 1587.0, "used_h": 244.5, "ext_h": 445.0, "predict_h": 1012.4}, "OMEGA2": {"total": 18, "high_risk": 6, "normal": 3, "zero": 9, "total_h": 1510.0, "used_h": 149.0, "ext_h": 330.0, "predict_h": 1194.8999999999999}, "C5": {"total": 10, "high_risk": 2, "normal": 8, "zero": 0, "total_h": 830.0, "used_h": 414, "ext_h": 169.0, "predict_h": 275.9}}, "employees": [{"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0281", "name": "葉慶元", "join_date": "2014/10/13", "seniority": "11年7個月", "total_entitled": 138, "annual_hours": 138, "ext_hours": 0, "used_hours": 0, "remaining": 138, "remaining_days": 17.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.2, "predicted_year_end_h": 138, "predicted_year_end_days": 17.2, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0807", "name": "王舜耕", "join_date": "2024/08/12", "seniority": "1年9個月", "total_entitled": 65, "annual_hours": 65, "ext_hours": 0, "used_hours": 40.5, "remaining": 24.5, "remaining_days": 3.1, "used_pct": 62.3, "gap_pct": -20.6, "gap_days": 1.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0953", "name": "蔡志強", "join_date": "2019/03/05", "seniority": "7年2個月", "total_entitled": 123, "annual_hours": 120, "ext_hours": 3, "used_hours": 33, "remaining": 90, "remaining_days": 11.2, "used_pct": 26.8, "gap_pct": 14.8, "gap_days": 2.3, "predicted_year_end_h": 43.8, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0967", "name": "張宜文", "join_date": "2025/12/22", "seniority": "0年5個月", "total_entitled": 58, "annual_hours": 58, "ext_hours": 0, "used_hours": 24, "remaining": 34, "remaining_days": 4.2, "used_pct": 41.4, "gap_pct": 0.3, "gap_days": 0.0, "predicted_year_end_h": 0.4, "predicted_year_end_days": 0.1, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0988", "name": "陳嘉明", "join_date": "2025/09/08", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "AT0054", "name": "林炫伯", "join_date": "2024/12/23", "seniority": "1年5個月", "total_entitled": 57, "annual_hours": 57, "ext_hours": 0, "used_hours": 0, "remaining": 57, "remaining_days": 7.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 3.0, "predicted_year_end_h": 57, "predicted_year_end_days": 7.1, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "B3", "dept_name": "B3", "emp_id": "0162", "name": "蔡明志", "join_date": "2020/03/02", "seniority": "6年2個月", "total_entitled": 123, "annual_hours": 120, "ext_hours": 3, "used_hours": 33, "remaining": 90, "remaining_days": 11.2, "used_pct": 26.8, "gap_pct": 14.8, "gap_days": 2.3, "predicted_year_end_h": 43.8, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "HA", "dept_name": "HA", "emp_id": "0232", "name": "張家盛", "join_date": "2025/10/07", "seniority": "0年7個月", "total_entitled": 69, "annual_hours": 69, "ext_hours": 0, "used_hours": 4, "remaining": 65, "remaining_days": 8.1, "used_pct": 5.8, "gap_pct": 35.9, "gap_days": 3.1, "predicted_year_end_h": 59.4, "predicted_year_end_days": 7.4, "status": "high_risk", "has_expiring": false, "warehouse": "HA"}, {"dept_id": "HASS", "dept_name": "HASS", "emp_id": "0057", "name": "陳文州", "join_date": "2025/03/01", "seniority": "1年2個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS", "dept_name": "HASS", "emp_id": "0888", "name": "李淑菁", "join_date": "2025/03/24", "seniority": "1年2個月", "total_entitled": 89.5, "annual_hours": 56, "ext_hours": 33.5, "used_hours": 0, "remaining": 89.5, "remaining_days": 11.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.7, "predicted_year_end_h": 89.5, "predicted_year_end_days": 11.2, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "WS", "dept_name": "WS", "emp_id": "0034", "name": "袁兆玉", "join_date": "2019/08/19", "seniority": "6年9個月", "total_entitled": 127, "annual_hours": 120, "ext_hours": 7, "used_hours": 70.5, "remaining": 56.5, "remaining_days": 7.1, "used_pct": 55.5, "gap_pct": -13.8, "gap_days": 2.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "EC", "dept_name": "EC", "emp_id": "0119", "name": "陳建宏", "join_date": "2019/06/10", "seniority": "6年11個月", "total_entitled": 148.5, "annual_hours": 120, "ext_hours": 28.5, "used_hours": 32.5, "remaining": 116.0, "remaining_days": 14.5, "used_pct": 21.9, "gap_pct": 19.8, "gap_days": 3.7, "predicted_year_end_h": 70.5, "predicted_year_end_days": 8.8, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC", "dept_name": "EC", "emp_id": "0120", "name": "鄭偉成", "join_date": "2019/05/13", "seniority": "7年0個月", "total_entitled": 214, "annual_hours": 120, "ext_hours": 94, "used_hours": 0, "remaining": 214, "remaining_days": 26.8, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.1, "predicted_year_end_h": 214, "predicted_year_end_days": 26.8, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "HASS-Customer", "dept_name": "HASS-行政", "emp_id": "0060", "name": "陳秀蘭", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 223.5, "annual_hours": 120, "ext_hours": 103.5, "used_hours": 0, "remaining": 223.5, "remaining_days": 27.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.6, "predicted_year_end_h": 223.5, "predicted_year_end_days": 27.9, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Customer", "dept_name": "HASS-行政", "emp_id": "0061", "name": "張雅婷", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 220, "annual_hours": 120, "ext_hours": 100, "used_hours": 0, "remaining": 220, "remaining_days": 27.5, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.5, "predicted_year_end_h": 220, "predicted_year_end_days": 27.5, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Customer", "dept_name": "HASS-行政", "emp_id": "0140", "name": "渠淑惠", "join_date": "2018/05/01", "seniority": "8年0個月", "total_entitled": 135.5, "annual_hours": 120, "ext_hours": 15.5, "used_hours": 32.5, "remaining": 103.0, "remaining_days": 12.9, "used_pct": 24.0, "gap_pct": 17.7, "gap_days": 3.0, "predicted_year_end_h": 57.5, "predicted_year_end_days": 7.2, "status": "normal", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0062", "name": "張峻龍", "join_date": "2025/09/15", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 8.5, "remaining": 47.5, "remaining_days": 5.9, "used_pct": 15.2, "gap_pct": 26.5, "gap_days": 1.9, "predicted_year_end_h": 35.6, "predicted_year_end_days": 4.5, "status": "high_risk", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0066", "name": "鄭魁元", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 123.5, "annual_hours": 120, "ext_hours": 3.5, "used_hours": 64.5, "remaining": 59.0, "remaining_days": 7.4, "used_pct": 52.2, "gap_pct": -10.6, "gap_days": 1.6, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0082", "name": "王政儀", "join_date": "2019/11/01", "seniority": "6年6個月", "total_entitled": 146, "annual_hours": 120, "ext_hours": 26, "used_hours": 6, "remaining": 140, "remaining_days": 17.5, "used_pct": 4.1, "gap_pct": 37.6, "gap_days": 6.9, "predicted_year_end_h": 131.6, "predicted_year_end_days": 16.4, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0193", "name": "趙璟淇", "join_date": "2018/07/05", "seniority": "7年10個月", "total_entitled": 143.5, "annual_hours": 120, "ext_hours": 23.5, "used_hours": 33.5, "remaining": 110.0, "remaining_days": 13.8, "used_pct": 23.3, "gap_pct": 18.3, "gap_days": 3.3, "predicted_year_end_h": 63.1, "predicted_year_end_days": 7.9, "status": "normal", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0721", "name": "張學祥", "join_date": "2023/07/03", "seniority": "2年10個月", "total_entitled": 96, "annual_hours": 96, "ext_hours": 0, "used_hours": 6.5, "remaining": 89.5, "remaining_days": 11.2, "used_pct": 6.8, "gap_pct": 34.9, "gap_days": 4.2, "predicted_year_end_h": 80.4, "predicted_year_end_days": 10.1, "status": "high_risk", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0899", "name": "許惠筑", "join_date": "2025/04/16", "seniority": "1年1個月", "total_entitled": 87.5, "annual_hours": 56, "ext_hours": 31.5, "used_hours": 0, "remaining": 87.5, "remaining_days": 10.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.6, "predicted_year_end_h": 87.5, "predicted_year_end_days": 10.9, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0943", "name": "陳老得", "join_date": "2025/09/15", "seniority": "0年8個月", "total_entitled": 73, "annual_hours": 56, "ext_hours": 17, "used_hours": 0, "remaining": 73, "remaining_days": 9.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 3.8, "predicted_year_end_h": 73, "predicted_year_end_days": 9.1, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0067", "name": "鄭佳瑜", "join_date": "2018/05/03", "seniority": "8年0個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 48, "remaining": 72, "remaining_days": 9.0, "used_pct": 40.0, "gap_pct": 1.7, "gap_days": 0.2, "predicted_year_end_h": 4.8, "predicted_year_end_days": 0.6, "status": "normal", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0158", "name": "鍾宇晴", "join_date": "2024/09/02", "seniority": "1年8個月", "total_entitled": 77, "annual_hours": 64, "ext_hours": 13, "used_hours": 8, "remaining": 69, "remaining_days": 8.6, "used_pct": 10.4, "gap_pct": 31.3, "gap_days": 3.0, "predicted_year_end_h": 57.8, "predicted_year_end_days": 7.2, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0192", "name": "簡秋雄", "join_date": "2018/07/02", "seniority": "7年10個月", "total_entitled": 125.5, "annual_hours": 120, "ext_hours": 5.5, "used_hours": 32, "remaining": 93.5, "remaining_days": 11.7, "used_pct": 25.5, "gap_pct": 16.2, "gap_days": 2.5, "predicted_year_end_h": 48.7, "predicted_year_end_days": 6.1, "status": "normal", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0499", "name": "林賢順", "join_date": "2022/02/09", "seniority": "4年3個月", "total_entitled": 156, "annual_hours": 112, "ext_hours": 44, "used_hours": 29.5, "remaining": 126.5, "remaining_days": 15.8, "used_pct": 18.9, "gap_pct": 22.8, "gap_days": 4.4, "predicted_year_end_h": 85.2, "predicted_year_end_days": 10.6, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0732", "name": "戴璟至", "join_date": "2023/08/01", "seniority": "2年9個月", "total_entitled": 93.5, "annual_hours": 93, "ext_hours": 0.5, "used_hours": 16.5, "remaining": 77.0, "remaining_days": 9.6, "used_pct": 17.6, "gap_pct": 24.0, "gap_days": 2.8, "predicted_year_end_h": 53.9, "predicted_year_end_days": 6.7, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0752", "name": "游孟庭", "join_date": "2023/10/23", "seniority": "2年7個月", "total_entitled": 108.5, "annual_hours": 86, "ext_hours": 22.5, "used_hours": 10.5, "remaining": 98.0, "remaining_days": 12.2, "used_pct": 9.7, "gap_pct": 32.0, "gap_days": 4.3, "predicted_year_end_h": 83.3, "predicted_year_end_days": 10.4, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Components", "dept_name": "HASS-零件", "emp_id": "0760", "name": "簡妤帆", "join_date": "2023/11/27", "seniority": "2年6個月", "total_entitled": 116, "annual_hours": 83, "ext_hours": 33, "used_hours": 0, "remaining": 116, "remaining_days": 14.5, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.0, "predicted_year_end_h": 116, "predicted_year_end_days": 14.5, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Posm", "dept_name": "HASS-POSM", "emp_id": "0457", "name": "黃千畇", "join_date": "2021/12/06", "seniority": "4年5個月", "total_entitled": 147.5, "annual_hours": 113, "ext_hours": 34.5, "used_hours": 0, "remaining": 147.5, "remaining_days": 18.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.7, "predicted_year_end_h": 147.5, "predicted_year_end_days": 18.4, "status": "zero", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0170", "name": "朱禹璇", "join_date": "2021/04/19", "seniority": "5年1個月", "total_entitled": 148.5, "annual_hours": 118, "ext_hours": 30.5, "used_hours": 53, "remaining": 95.5, "remaining_days": 11.9, "used_pct": 35.7, "gap_pct": 6.0, "gap_days": 1.1, "predicted_year_end_h": 21.3, "predicted_year_end_days": 2.7, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0200", "name": "吳珍珍", "join_date": "2019/05/28", "seniority": "7年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0253", "name": "劉律瑩", "join_date": "2020/12/02", "seniority": "5年5個月", "total_entitled": 233, "annual_hours": 120, "ext_hours": 113, "used_hours": 0, "remaining": 233, "remaining_days": 29.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.1, "predicted_year_end_h": 233, "predicted_year_end_days": 29.1, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0521", "name": "翁雯琪", "join_date": "2022/03/01", "seniority": "4年2個月", "total_entitled": 166, "annual_hours": 112, "ext_hours": 54, "used_hours": 0, "remaining": 166, "remaining_days": 20.8, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.6, "predicted_year_end_h": 166, "predicted_year_end_days": 20.8, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0659", "name": "李怡潔", "join_date": "2022/09/19", "seniority": "3年8個月", "total_entitled": 149, "annual_hours": 112, "ext_hours": 37, "used_hours": 0, "remaining": 149, "remaining_days": 18.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.8, "predicted_year_end_h": 149, "predicted_year_end_days": 18.6, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0664", "name": "楊天雅", "join_date": "2023/04/03", "seniority": "3年1個月", "total_entitled": 168, "annual_hours": 104, "ext_hours": 64, "used_hours": 0, "remaining": 168, "remaining_days": 21.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.8, "predicted_year_end_h": 168, "predicted_year_end_days": 21.0, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-副理", "dept_name": "B3-副理", "emp_id": "0538", "name": "曾廣弘", "join_date": "2022/04/06", "seniority": "4年1個月", "total_entitled": 117.5, "annual_hours": 112, "ext_hours": 5.5, "used_hours": 39.5, "remaining": 78.0, "remaining_days": 9.8, "used_pct": 33.6, "gap_pct": 8.0, "gap_days": 1.2, "predicted_year_end_h": 22.7, "predicted_year_end_days": 2.8, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "HA-Customer", "dept_name": "HA-行政", "emp_id": "0052", "name": "陳佳君", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 199.5, "annual_hours": 120, "ext_hours": 79.5, "used_hours": 0, "remaining": 199.5, "remaining_days": 24.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.4, "predicted_year_end_h": 199.5, "predicted_year_end_days": 24.9, "status": "zero", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Customer", "dept_name": "HA-行政", "emp_id": "0054", "name": "凃以勤", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Customer", "dept_name": "HA-行政", "emp_id": "0708", "name": "唐寧絜", "join_date": "2023/02/01", "seniority": "3年3個月", "total_entitled": 130, "annual_hours": 109, "ext_hours": 21, "used_hours": 7.5, "remaining": 122.5, "remaining_days": 15.3, "used_pct": 5.8, "gap_pct": 35.9, "gap_days": 5.8, "predicted_year_end_h": 112.0, "predicted_year_end_days": 14.0, "status": "high_risk", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0243", "name": "陳俊宏", "join_date": "2021/05/02", "seniority": "5年0個月", "total_entitled": 181.5, "annual_hours": 117, "ext_hours": 64.5, "used_hours": 0, "remaining": 181.5, "remaining_days": 22.7, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 9.5, "predicted_year_end_h": 181.5, "predicted_year_end_days": 22.7, "status": "zero", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0442", "name": "許文欽", "join_date": "2021/11/08", "seniority": "4年6個月", "total_entitled": 123, "annual_hours": 113, "ext_hours": 10, "used_hours": 41.5, "remaining": 81.5, "remaining_days": 10.2, "used_pct": 33.7, "gap_pct": 7.9, "gap_days": 1.2, "predicted_year_end_h": 23.4, "predicted_year_end_days": 2.9, "status": "normal", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0477", "name": "陳志俊", "join_date": "2022/01/03", "seniority": "4年4個月", "total_entitled": 146, "annual_hours": 112, "ext_hours": 34, "used_hours": 14, "remaining": 132, "remaining_days": 16.5, "used_pct": 9.6, "gap_pct": 32.1, "gap_days": 5.9, "predicted_year_end_h": 112.4, "predicted_year_end_days": 14.1, "status": "high_risk", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0488", "name": "簡上斌", "join_date": "2022/02/07", "seniority": "4年3個月", "total_entitled": 116.5, "annual_hours": 112, "ext_hours": 4.5, "used_hours": 27.5, "remaining": 89.0, "remaining_days": 11.1, "used_pct": 23.6, "gap_pct": 18.1, "gap_days": 2.6, "predicted_year_end_h": 50.5, "predicted_year_end_days": 6.3, "status": "normal", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0526", "name": "王明芬", "join_date": "2022/03/14", "seniority": "4年2個月", "total_entitled": 118, "annual_hours": 112, "ext_hours": 6, "used_hours": 40, "remaining": 78, "remaining_days": 9.8, "used_pct": 33.9, "gap_pct": 7.8, "gap_days": 1.1, "predicted_year_end_h": 22.0, "predicted_year_end_days": 2.8, "status": "normal", "has_expiring": true, "warehouse": "HA"}, {"dept_id": "HA-Operation", "dept_name": "HA-倉管", "emp_id": "0717", "name": "劉春風", "join_date": "2023/06/05", "seniority": "2年11個月", "total_entitled": 98, "annual_hours": 98, "ext_hours": 0, "used_hours": 40, "remaining": 58, "remaining_days": 7.2, "used_pct": 40.8, "gap_pct": 0.9, "gap_days": 0.1, "predicted_year_end_h": 2.0, "predicted_year_end_days": 0.2, "status": "normal", "has_expiring": false, "warehouse": "HA"}, {"dept_id": "EC-早班-出貨", "dept_name": "EC-早班-出貨", "emp_id": "0180", "name": "張凱瑞", "join_date": "2020/05/04", "seniority": "6年0個月", "total_entitled": 237, "annual_hours": 120, "ext_hours": 117, "used_hours": 0, "remaining": 237, "remaining_days": 29.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.3, "predicted_year_end_h": 237, "predicted_year_end_days": 29.6, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0314", "name": "林冠伶", "join_date": "2021/04/12", "seniority": "5年1個月", "total_entitled": 142.5, "annual_hours": 118, "ext_hours": 24.5, "used_hours": 11, "remaining": 131.5, "remaining_days": 16.4, "used_pct": 7.7, "gap_pct": 33.9, "gap_days": 6.0, "predicted_year_end_h": 116.1, "predicted_year_end_days": 14.5, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0321", "name": "游毓瑄", "join_date": "2021/04/21", "seniority": "5年1個月", "total_entitled": 125.5, "annual_hours": 118, "ext_hours": 7.5, "used_hours": 103, "remaining": 22.5, "remaining_days": 2.8, "used_pct": 82.1, "gap_pct": -40.4, "gap_days": 6.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0341", "name": "張靜怡", "join_date": "2021/06/04", "seniority": "4年11個月", "total_entitled": 146, "annual_hours": 117, "ext_hours": 29, "used_hours": 10.5, "remaining": 135.5, "remaining_days": 16.9, "used_pct": 7.2, "gap_pct": 34.5, "gap_days": 6.3, "predicted_year_end_h": 120.8, "predicted_year_end_days": 15.1, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0470", "name": "蘇怡慧", "join_date": "2022/10/17", "seniority": "3年7個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 65, "remaining": 47, "remaining_days": 5.9, "used_pct": 58.0, "gap_pct": -16.4, "gap_days": 2.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0787", "name": "王若喬", "join_date": "2024/07/08", "seniority": "1年10個月", "total_entitled": 71, "annual_hours": 68, "ext_hours": 3, "used_hours": 32.5, "remaining": 38.5, "remaining_days": 4.8, "used_pct": 45.8, "gap_pct": -4.1, "gap_days": 0.4, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0795", "name": "郭玉婷", "join_date": "2024/08/12", "seniority": "1年9個月", "total_entitled": 66.5, "annual_hours": 65, "ext_hours": 1.5, "used_hours": 41.5, "remaining": 25.0, "remaining_days": 3.1, "used_pct": 62.4, "gap_pct": -20.7, "gap_days": 1.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0228", "name": "李雅琪", "join_date": "2020/12/02", "seniority": "5年5個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 108.5, "remaining": 11.5, "remaining_days": 1.4, "used_pct": 90.4, "gap_pct": -48.8, "gap_days": 7.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0290", "name": "闕筱璇", "join_date": "2021/10/16", "seniority": "4年7個月", "total_entitled": 115.5, "annual_hours": 114, "ext_hours": 1.5, "used_hours": 64, "remaining": 51.5, "remaining_days": 6.4, "used_pct": 55.4, "gap_pct": -13.7, "gap_days": 2.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0292", "name": "蕭靜雯", "join_date": "2021/02/17", "seniority": "5年3個月", "total_entitled": 151.5, "annual_hours": 119, "ext_hours": 32.5, "used_hours": 20.5, "remaining": 131.0, "remaining_days": 16.4, "used_pct": 13.5, "gap_pct": 28.1, "gap_days": 5.3, "predicted_year_end_h": 102.3, "predicted_year_end_days": 12.8, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0302", "name": "蕭倢伃", "join_date": "2021/03/02", "seniority": "5年2個月", "total_entitled": 174.5, "annual_hours": 119, "ext_hours": 55.5, "used_hours": 0, "remaining": 174.5, "remaining_days": 21.8, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 9.1, "predicted_year_end_h": 174.5, "predicted_year_end_days": 21.8, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0467", "name": "劉佩如", "join_date": "2021/12/20", "seniority": "4年5個月", "total_entitled": 117, "annual_hours": 112, "ext_hours": 5, "used_hours": 31, "remaining": 86, "remaining_days": 10.8, "used_pct": 26.5, "gap_pct": 15.2, "gap_days": 2.2, "predicted_year_end_h": 42.6, "predicted_year_end_days": 5.3, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Processing", "dept_name": "DY1F-加工", "emp_id": "0468", "name": "張惠聆", "join_date": "2021/12/20", "seniority": "4年5個月", "total_entitled": 160, "annual_hours": 112, "ext_hours": 48, "used_hours": 0, "remaining": 160, "remaining_days": 20.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.3, "predicted_year_end_h": 160, "predicted_year_end_days": 20.0, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0029", "name": "洪鶴娟", "join_date": "2019/05/20", "seniority": "7年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0153", "name": "林佳琦", "join_date": "2020/01/30", "seniority": "6年4個月", "total_entitled": 194.5, "annual_hours": 120, "ext_hours": 74.5, "used_hours": 0, "remaining": 194.5, "remaining_days": 24.3, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.1, "predicted_year_end_h": 194.5, "predicted_year_end_days": 24.3, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0552", "name": "林欣瑜", "join_date": "2022/05/09", "seniority": "4年0個月", "total_entitled": 222, "annual_hours": 151, "ext_hours": 71, "used_hours": 76, "remaining": 146, "remaining_days": 18.2, "used_pct": 34.2, "gap_pct": 7.4, "gap_days": 2.1, "predicted_year_end_h": 39.6, "predicted_year_end_days": 5.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0668", "name": "林佳蓉", "join_date": "2022/10/03", "seniority": "3年7個月", "total_entitled": 130, "annual_hours": 112, "ext_hours": 18, "used_hours": 75.5, "remaining": 54.5, "remaining_days": 6.8, "used_pct": 58.1, "gap_pct": -16.4, "gap_days": 2.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0908", "name": "王奕淳", "join_date": "2025/06/02", "seniority": "0年11個月", "total_entitled": 89, "annual_hours": 56, "ext_hours": 33, "used_hours": 0, "remaining": 89, "remaining_days": 11.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.6, "predicted_year_end_h": 89, "predicted_year_end_days": 11.1, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0016", "name": "蘇勇睿", "join_date": "2017/06/01", "seniority": "8年11個月", "total_entitled": 136, "annual_hours": 120, "ext_hours": 16, "used_hours": 29, "remaining": 107, "remaining_days": 13.4, "used_pct": 21.3, "gap_pct": 20.3, "gap_days": 3.5, "predicted_year_end_h": 66.4, "predicted_year_end_days": 8.3, "status": "high_risk", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0018", "name": "李明國", "join_date": "2017/11/01", "seniority": "8年6個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0036", "name": "陳清揚", "join_date": "2019/09/02", "seniority": "6年8個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 72, "remaining": 48, "remaining_days": 6.0, "used_pct": 60.0, "gap_pct": -18.3, "gap_days": 2.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0084", "name": "陳保吉", "join_date": "2018/09/13", "seniority": "7年8個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0134", "name": "胡雅紋", "join_date": "2019/08/01", "seniority": "6年9個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 9.5, "remaining": 230.5, "remaining_days": 28.8, "used_pct": 4.0, "gap_pct": 37.7, "gap_days": 11.3, "predicted_year_end_h": 217.2, "predicted_year_end_days": 27.1, "status": "high_risk", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0199", "name": "唐麗玲", "join_date": "2019/05/28", "seniority": "7年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0207", "name": "廖晟志", "join_date": "2021/12/20", "seniority": "4年5個月", "total_entitled": 126, "annual_hours": 112, "ext_hours": 14, "used_hours": 15, "remaining": 111, "remaining_days": 13.9, "used_pct": 11.9, "gap_pct": 29.8, "gap_days": 4.7, "predicted_year_end_h": 90.0, "predicted_year_end_days": 11.2, "status": "high_risk", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0393", "name": "胡雅芹", "join_date": "2021/09/01", "seniority": "4年8個月", "total_entitled": 165.5, "annual_hours": 115, "ext_hours": 50.5, "used_hours": 48.5, "remaining": 117.0, "remaining_days": 14.6, "used_pct": 29.3, "gap_pct": 12.4, "gap_days": 2.6, "predicted_year_end_h": 49.1, "predicted_year_end_days": 6.1, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0128", "name": "徐玉雪", "join_date": "2019/10/01", "seniority": "6年7個月", "total_entitled": 194, "annual_hours": 120, "ext_hours": 74, "used_hours": 0, "remaining": 194, "remaining_days": 24.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.1, "predicted_year_end_h": 194, "predicted_year_end_days": 24.2, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0130", "name": "曹瑞芬", "join_date": "2019/02/01", "seniority": "7年3個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0166", "name": "黃美涵", "join_date": "2020/03/03", "seniority": "6年2個月", "total_entitled": 202, "annual_hours": 120, "ext_hours": 82, "used_hours": 0, "remaining": 202, "remaining_days": 25.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.5, "predicted_year_end_h": 202, "predicted_year_end_days": 25.2, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0167", "name": "陳怡瑾", "join_date": "2020/03/09", "seniority": "6年2個月", "total_entitled": 150, "annual_hours": 120, "ext_hours": 30, "used_hours": 64, "remaining": 86, "remaining_days": 10.8, "used_pct": 42.7, "gap_pct": -1.0, "gap_days": 0.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0240", "name": "賴怡心", "join_date": "2020/10/19", "seniority": "5年7個月", "total_entitled": 234, "annual_hours": 120, "ext_hours": 114, "used_hours": 0, "remaining": 234, "remaining_days": 29.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.2, "predicted_year_end_h": 234, "predicted_year_end_days": 29.2, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0361", "name": "楊巧怡", "join_date": "2021/07/26", "seniority": "4年10個月", "total_entitled": 134.5, "annual_hours": 115, "ext_hours": 19.5, "used_hours": 38, "remaining": 96.5, "remaining_days": 12.1, "used_pct": 28.3, "gap_pct": 13.4, "gap_days": 2.3, "predicted_year_end_h": 43.3, "predicted_year_end_days": 5.4, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0420", "name": "許瑜淳", "join_date": "2021/10/01", "seniority": "4年7個月", "total_entitled": 186, "annual_hours": 114, "ext_hours": 72, "used_hours": 0, "remaining": 186, "remaining_days": 23.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 9.7, "predicted_year_end_h": 186, "predicted_year_end_days": 23.2, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0560", "name": "陳翊文", "join_date": "2022/10/24", "seniority": "3年7個月", "total_entitled": 113.5, "annual_hours": 112, "ext_hours": 1.5, "used_hours": 79.5, "remaining": 34.0, "remaining_days": 4.2, "used_pct": 70.0, "gap_pct": -28.4, "gap_days": 4.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0563", "name": "陳寶珍", "join_date": "2022/05/16", "seniority": "4年0個月", "total_entitled": 113.5, "annual_hours": 112, "ext_hours": 1.5, "used_hours": 87, "remaining": 26.5, "remaining_days": 3.3, "used_pct": 76.7, "gap_pct": -35.0, "gap_days": 5.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "WS-Estee", "dept_name": "WS-雅詩蘭黛", "emp_id": "0672", "name": "洪淑潔", "join_date": "2022/10/11", "seniority": "3年7個月", "total_entitled": 143, "annual_hours": 112, "ext_hours": 31, "used_hours": 45, "remaining": 98, "remaining_days": 12.2, "used_pct": 31.5, "gap_pct": 10.2, "gap_days": 1.8, "predicted_year_end_h": 35.0, "predicted_year_end_days": 4.4, "status": "normal", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "HASS-Return", "dept_name": "HASS-保退", "emp_id": "0063", "name": "游士弘", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 140, "annual_hours": 120, "ext_hours": 20, "used_hours": 38, "remaining": 102, "remaining_days": 12.8, "used_pct": 27.1, "gap_pct": 14.5, "gap_days": 2.5, "predicted_year_end_h": 48.8, "predicted_year_end_days": 6.1, "status": "normal", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "HASS-Return", "dept_name": "HASS-保退", "emp_id": "0961", "name": "簡正祺", "join_date": "2025/11/17", "seniority": "0年6個月", "total_entitled": 63, "annual_hours": 63, "ext_hours": 0, "used_hours": 4.5, "remaining": 58.5, "remaining_days": 7.3, "used_pct": 7.1, "gap_pct": 34.5, "gap_days": 2.7, "predicted_year_end_h": 52.2, "predicted_year_end_days": 6.5, "status": "high_risk", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "B9-經理", "dept_name": "B9-經理", "emp_id": "0123", "name": "李雅雯", "join_date": "2019/05/28", "seniority": "7年0個月", "total_entitled": 213.5, "annual_hours": 120, "ext_hours": 93.5, "used_hours": 11, "remaining": 202.5, "remaining_days": 25.3, "used_pct": 5.2, "gap_pct": 36.5, "gap_days": 9.7, "predicted_year_end_h": 187.1, "predicted_year_end_days": 23.4, "status": "high_risk", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "DY1F-Supervisor", "dept_name": "DY1F-主任", "emp_id": "0155", "name": "姜學頴", "join_date": "2020/02/03", "seniority": "6年3個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 64.5, "remaining": 55.5, "remaining_days": 6.9, "used_pct": 53.8, "gap_pct": -12.1, "gap_days": 1.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-Samsonite", "dept_name": "DY1F-新秀麗", "emp_id": "0666", "name": "陳竣銘", "join_date": "2022/09/26", "seniority": "3年8個月", "total_entitled": 128.5, "annual_hours": 112, "ext_hours": 16.5, "used_hours": 51, "remaining": 77.5, "remaining_days": 9.7, "used_pct": 39.7, "gap_pct": 2.0, "gap_days": 0.3, "predicted_year_end_h": 6.1, "predicted_year_end_days": 0.8, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Samsonite", "dept_name": "DY1F-新秀麗", "emp_id": "0723", "name": "方驣庠", "join_date": "2023/07/10", "seniority": "2年10個月", "total_entitled": 95.5, "annual_hours": 95, "ext_hours": 0.5, "used_hours": 46.5, "remaining": 49.0, "remaining_days": 6.1, "used_pct": 48.7, "gap_pct": -7.0, "gap_days": 0.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Samsonite", "dept_name": "DY1F-新秀麗", "emp_id": "0764", "name": "宋柏寬", "join_date": "2023/12/18", "seniority": "2年5個月", "total_entitled": 138, "annual_hours": 81, "ext_hours": 57, "used_hours": 0, "remaining": 138, "remaining_days": 17.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.2, "predicted_year_end_h": 138, "predicted_year_end_days": 17.2, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-Samsonite", "dept_name": "DY1F-新秀麗", "emp_id": "0771", "name": "朱柏沅", "join_date": "2024/03/12", "seniority": "2年2個月", "total_entitled": 83, "annual_hours": 75, "ext_hours": 8, "used_hours": 49, "remaining": 34, "remaining_days": 4.2, "used_pct": 59.0, "gap_pct": -17.4, "gap_days": 1.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "HR", "dept_name": "人力資源", "emp_id": "0963", "name": "鄭家媛", "join_date": "2025/12/01", "seniority": "0年5個月", "total_entitled": 61, "annual_hours": 61, "ext_hours": 0, "used_hours": 40, "remaining": 21, "remaining_days": 2.6, "used_pct": 65.6, "gap_pct": -23.9, "gap_days": 1.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "HR", "dept_name": "人力資源", "emp_id": "ALP575", "name": "周怡玉", "join_date": "2025/05/12", "seniority": "1年0個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "HR", "dept_name": "人力資源", "emp_id": "P426", "name": "閻證恩", "join_date": "2023/07/03", "seniority": "2年10個月", "total_entitled": 96, "annual_hours": 96, "ext_hours": 0, "used_hours": 0, "remaining": 96, "remaining_days": 12.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.0, "predicted_year_end_h": 96, "predicted_year_end_days": 12.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "DY2F-副理", "dept_name": "DY2F-副理", "emp_id": "0931", "name": "謝志偉", "join_date": "2023/06/05", "seniority": "2年11個月", "total_entitled": 148.5, "annual_hours": 146, "ext_hours": 2.5, "used_hours": 61, "remaining": 87.5, "remaining_days": 10.9, "used_pct": 41.1, "gap_pct": 0.6, "gap_days": 0.1, "predicted_year_end_h": 2.1, "predicted_year_end_days": 0.3, "status": "normal", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "EC-晚班-出貨", "dept_name": "EC-晚班-出貨", "emp_id": "0132", "name": "楊文琴", "join_date": "2018/05/01", "seniority": "8年0個月", "total_entitled": 121.5, "annual_hours": 120, "ext_hours": 1.5, "used_hours": 59, "remaining": 62.5, "remaining_days": 7.8, "used_pct": 48.6, "gap_pct": -6.9, "gap_days": 1.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-晚班-出貨", "dept_name": "EC-晚班-出貨", "emp_id": "0222", "name": "鄭世奇", "join_date": "2020/08/03", "seniority": "5年9個月", "total_entitled": 123.5, "annual_hours": 120, "ext_hours": 3.5, "used_hours": 32, "remaining": 91.5, "remaining_days": 11.4, "used_pct": 25.9, "gap_pct": 15.8, "gap_days": 2.4, "predicted_year_end_h": 46.7, "predicted_year_end_days": 5.8, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-晚班-出貨", "dept_name": "EC-晚班-出貨", "emp_id": "0595", "name": "朱雅蓓", "join_date": "2022/07/11", "seniority": "3年10個月", "total_entitled": 120.5, "annual_hours": 112, "ext_hours": 8.5, "used_hours": 39.5, "remaining": 81.0, "remaining_days": 10.1, "used_pct": 32.8, "gap_pct": 8.9, "gap_days": 1.3, "predicted_year_end_h": 25.7, "predicted_year_end_days": 3.2, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-晚班-出貨", "dept_name": "EC-晚班-出貨", "emp_id": "0629", "name": "簡惠玲", "join_date": "2022/08/08", "seniority": "3年9個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 41.5, "remaining": 70.5, "remaining_days": 8.8, "used_pct": 37.1, "gap_pct": 4.6, "gap_days": 0.6, "predicted_year_end_h": 12.4, "predicted_year_end_days": 1.5, "status": "normal", "has_expiring": false, "warehouse": "EC"}, {"dept_id": "EC-晚班-出貨", "dept_name": "EC-晚班-出貨", "emp_id": "0701", "name": "簡宏縉", "join_date": "2025/05/02", "seniority": "1年0個月", "total_entitled": 58.5, "annual_hours": 56, "ext_hours": 2.5, "used_hours": 51.5, "remaining": 7.0, "remaining_days": 0.9, "used_pct": 88.0, "gap_pct": -46.4, "gap_days": 3.4, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "Finance-A", "dept_name": "財務A", "emp_id": "0282", "name": "蘇秀蓮", "join_date": "2018/12/10", "seniority": "7年5個月", "total_entitled": 235, "annual_hours": 120, "ext_hours": 115, "used_hours": 0, "remaining": 235, "remaining_days": 29.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.2, "predicted_year_end_h": 235, "predicted_year_end_days": 29.4, "status": "zero", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "Finance-A", "dept_name": "財務A", "emp_id": "ALP464", "name": "趙笙銘", "join_date": "2025/12/29", "seniority": "0年5個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "Procurement", "dept_name": "採購", "emp_id": "0148", "name": "龍志榮", "join_date": "2019/12/16", "seniority": "6年5個月", "total_entitled": 225, "annual_hours": 120, "ext_hours": 105, "used_hours": 0, "remaining": 225, "remaining_days": 28.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.7, "predicted_year_end_h": 225, "predicted_year_end_days": 28.1, "status": "zero", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "Procurement", "dept_name": "採購", "emp_id": "ALP153", "name": "林建成", "join_date": "2026/02/01", "seniority": "0年3個月", "total_entitled": 51, "annual_hours": 51, "ext_hours": 0, "used_hours": 0, "remaining": 51, "remaining_days": 6.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.7, "predicted_year_end_h": 51, "predicted_year_end_days": 6.4, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "Transport", "dept_name": "運輸", "emp_id": "0229", "name": "李柏興", "join_date": "2022/05/18", "seniority": "4年0個月", "total_entitled": 112.5, "annual_hours": 112, "ext_hours": 0.5, "used_hours": 57.5, "remaining": 55.0, "remaining_days": 6.9, "used_pct": 51.1, "gap_pct": -9.4, "gap_days": 1.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "Transport", "dept_name": "運輸", "emp_id": "0772", "name": "林秀鳳", "join_date": "2018/03/01", "seniority": "8年2個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 76, "remaining": 44, "remaining_days": 5.5, "used_pct": 63.3, "gap_pct": -21.7, "gap_days": 3.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "Transport", "dept_name": "運輸", "emp_id": "0804", "name": "林郁真", "join_date": "2024/07/29", "seniority": "1年10個月", "total_entitled": 66, "annual_hours": 66, "ext_hours": 0, "used_hours": 58, "remaining": 8, "remaining_days": 1.0, "used_pct": 87.9, "gap_pct": -46.2, "gap_days": 3.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "Transport", "dept_name": "運輸", "emp_id": "AT121", "name": "蘇奎宇", "join_date": "2025/12/29", "seniority": "0年5個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0264", "name": "粘創勝", "join_date": "2021/01/01", "seniority": "5年4個月", "total_entitled": 232, "annual_hours": 120, "ext_hours": 112, "used_hours": 0, "remaining": 232, "remaining_days": 29.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.1, "predicted_year_end_h": 232, "predicted_year_end_days": 29.0, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0298", "name": "童正榮", "join_date": "2021/03/02", "seniority": "5年2個月", "total_entitled": 231, "annual_hours": 119, "ext_hours": 112, "used_hours": 0, "remaining": 231, "remaining_days": 28.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.0, "predicted_year_end_h": 231, "predicted_year_end_days": 28.9, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0712", "name": "楊藝豐", "join_date": "2023/03/06", "seniority": "3年2個月", "total_entitled": 106, "annual_hours": 106, "ext_hours": 0, "used_hours": 74, "remaining": 32, "remaining_days": 4.0, "used_pct": 69.8, "gap_pct": -28.1, "gap_days": 3.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0735", "name": "黎週發", "join_date": "2023/08/08", "seniority": "2年9個月", "total_entitled": 93, "annual_hours": 93, "ext_hours": 0, "used_hours": 93, "remaining": 0, "remaining_days": 0.0, "used_pct": 100.0, "gap_pct": -58.3, "gap_days": 6.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0762", "name": "武氏懷", "join_date": "2023/12/07", "seniority": "2年5個月", "total_entitled": 99.5, "annual_hours": 82, "ext_hours": 17.5, "used_hours": 18, "remaining": 81.5, "remaining_days": 10.2, "used_pct": 18.1, "gap_pct": 23.6, "gap_days": 2.9, "predicted_year_end_h": 56.3, "predicted_year_end_days": 7.0, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0775", "name": "魏守辰", "join_date": "2024/04/08", "seniority": "2年1個月", "total_entitled": 117, "annual_hours": 74, "ext_hours": 43, "used_hours": 0, "remaining": 117, "remaining_days": 14.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.1, "predicted_year_end_h": 117, "predicted_year_end_days": 14.6, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0780", "name": "王駿心", "join_date": "2024/05/13", "seniority": "2年0個月", "total_entitled": 94, "annual_hours": 71, "ext_hours": 23, "used_hours": 9, "remaining": 85, "remaining_days": 10.6, "used_pct": 9.6, "gap_pct": 32.1, "gap_days": 3.8, "predicted_year_end_h": 72.4, "predicted_year_end_days": 9.1, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0826", "name": "梁信郁", "join_date": "2024/10/14", "seniority": "1年7個月", "total_entitled": 61, "annual_hours": 61, "ext_hours": 0, "used_hours": 13, "remaining": 48, "remaining_days": 6.0, "used_pct": 21.3, "gap_pct": 20.4, "gap_days": 1.6, "predicted_year_end_h": 29.8, "predicted_year_end_days": 3.7, "status": "high_risk", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY2F-Receiving", "dept_name": "DY2F-進貨", "emp_id": "0271", "name": "張文成", "join_date": "2021/01/01", "seniority": "5年4個月", "total_entitled": 157, "annual_hours": 120, "ext_hours": 37, "used_hours": 70.5, "remaining": 86.5, "remaining_days": 10.8, "used_pct": 44.9, "gap_pct": -3.2, "gap_days": 0.6, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-Receiving", "dept_name": "DY2F-進貨", "emp_id": "0504", "name": "林郁雯", "join_date": "2022/02/15", "seniority": "4年3個月", "total_entitled": 113, "annual_hours": 112, "ext_hours": 1, "used_hours": 37, "remaining": 76, "remaining_days": 9.5, "used_pct": 32.7, "gap_pct": 8.9, "gap_days": 1.3, "predicted_year_end_h": 24.2, "predicted_year_end_days": 3.0, "status": "normal", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-Receiving", "dept_name": "DY2F-進貨", "emp_id": "0928", "name": "古惠芳", "join_date": "2025/08/25", "seniority": "0年9個月", "total_entitled": 76, "annual_hours": 56, "ext_hours": 20, "used_hours": 29, "remaining": 47, "remaining_days": 5.9, "used_pct": 38.2, "gap_pct": 3.5, "gap_days": 0.3, "predicted_year_end_h": 6.4, "predicted_year_end_days": 0.8, "status": "normal", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-shipment", "dept_name": "DY2F-出貨", "emp_id": "0915", "name": "陳寬隆", "join_date": "2025/07/28", "seniority": "0年10個月", "total_entitled": 70, "annual_hours": 56, "ext_hours": 14, "used_hours": 4, "remaining": 66, "remaining_days": 8.2, "used_pct": 5.7, "gap_pct": 36.0, "gap_days": 3.1, "predicted_year_end_h": 60.4, "predicted_year_end_days": 7.5, "status": "high_risk", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-shipment", "dept_name": "DY2F-出貨", "emp_id": "0927", "name": "閔毓婕", "join_date": "2025/08/25", "seniority": "0年9個月", "total_entitled": 66, "annual_hours": 56, "ext_hours": 10, "used_hours": 27, "remaining": 39, "remaining_days": 4.9, "used_pct": 40.9, "gap_pct": 0.8, "gap_days": 0.1, "predicted_year_end_h": 1.2, "predicted_year_end_days": 0.1, "status": "normal", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-出口", "dept_name": "DY2F-出口", "emp_id": "0258", "name": "萬民誠", "join_date": "2021/01/01", "seniority": "5年4個月", "total_entitled": 232, "annual_hours": 120, "ext_hours": 112, "used_hours": 0, "remaining": 232, "remaining_days": 29.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.1, "predicted_year_end_h": 232, "predicted_year_end_days": 29.0, "status": "zero", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-出口", "dept_name": "DY2F-出口", "emp_id": "0322", "name": "陳亨", "join_date": "2021/05/03", "seniority": "5年0個月", "total_entitled": 163.5, "annual_hours": 117, "ext_hours": 46.5, "used_hours": 0, "remaining": 163.5, "remaining_days": 20.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.5, "predicted_year_end_h": 163.5, "predicted_year_end_days": 20.4, "status": "zero", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2F-出口", "dept_name": "DY2F-出口", "emp_id": "0968", "name": "賴彥旨", "join_date": "2025/12/29", "seniority": "0年5個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 8, "remaining": 48, "remaining_days": 6.0, "used_pct": 14.3, "gap_pct": 27.4, "gap_days": 1.9, "predicted_year_end_h": 36.8, "predicted_year_end_days": 4.6, "status": "high_risk", "has_expiring": false, "warehouse": "DY2F"}, {"dept_id": "DY2FAdministration", "dept_name": "DY2F-行政", "emp_id": "0439", "name": "陳翊涵", "join_date": "2021/11/04", "seniority": "4年6個月", "total_entitled": 225, "annual_hours": 113, "ext_hours": 112, "used_hours": 0, "remaining": 225, "remaining_days": 28.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.7, "predicted_year_end_h": 225, "predicted_year_end_days": 28.1, "status": "zero", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2FAdministration", "dept_name": "DY2F-行政", "emp_id": "0759", "name": "何雅琳", "join_date": "2024/09/02", "seniority": "1年8個月", "total_entitled": 88, "annual_hours": 64, "ext_hours": 24, "used_hours": 0, "remaining": 88, "remaining_days": 11.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.6, "predicted_year_end_h": 88, "predicted_year_end_days": 11.0, "status": "zero", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "DY2FAdministration", "dept_name": "DY2F-行政", "emp_id": "0789", "name": "余姿伶", "join_date": "2024/08/01", "seniority": "1年9個月", "total_entitled": 66, "annual_hours": 66, "ext_hours": 0, "used_hours": 8, "remaining": 58, "remaining_days": 7.2, "used_pct": 12.1, "gap_pct": 29.5, "gap_days": 2.4, "predicted_year_end_h": 46.8, "predicted_year_end_days": 5.8, "status": "high_risk", "has_expiring": false, "warehouse": "DY2F"}, {"dept_id": "DY2FAdministration", "dept_name": "DY2F-行政", "emp_id": "0829", "name": "賴思穎", "join_date": "2024/10/28", "seniority": "1年7個月", "total_entitled": 126, "annual_hours": 60, "ext_hours": 66, "used_hours": 0, "remaining": 126, "remaining_days": 15.8, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.6, "predicted_year_end_h": 126, "predicted_year_end_days": 15.8, "status": "zero", "has_expiring": true, "warehouse": "DY2F"}, {"dept_id": "HA-Temp", "dept_name": "HA-派遣", "emp_id": "B266", "name": "洪舜德", "join_date": "2025/09/04", "seniority": "0年8個月", "total_entitled": 17, "annual_hours": 17, "ext_hours": 0, "used_hours": 0, "remaining": 17, "remaining_days": 2.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 0.9, "predicted_year_end_h": 17, "predicted_year_end_days": 2.1, "status": "zero", "has_expiring": false, "warehouse": "HA"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0216", "name": "張憶珍", "join_date": "2020/08/03", "seniority": "5年9個月", "total_entitled": 142, "annual_hours": 120, "ext_hours": 22, "used_hours": 44, "remaining": 98, "remaining_days": 12.2, "used_pct": 31.0, "gap_pct": 10.7, "gap_days": 1.9, "predicted_year_end_h": 36.4, "predicted_year_end_days": 4.5, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0283", "name": "陳雅嫃", "join_date": "2019/04/23", "seniority": "7年1個月", "total_entitled": 135, "annual_hours": 120, "ext_hours": 15, "used_hours": 18, "remaining": 117, "remaining_days": 14.6, "used_pct": 13.3, "gap_pct": 28.3, "gap_days": 4.8, "predicted_year_end_h": 91.8, "predicted_year_end_days": 11.5, "status": "high_risk", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0331", "name": "魏盈榛", "join_date": "2021/05/20", "seniority": "5年0個月", "total_entitled": 126, "annual_hours": 117, "ext_hours": 9, "used_hours": 56, "remaining": 70, "remaining_days": 8.8, "used_pct": 44.4, "gap_pct": -2.8, "gap_days": 0.4, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0679", "name": "徐秋萍", "join_date": "2022/11/01", "seniority": "3年6個月", "total_entitled": 197, "annual_hours": 112, "ext_hours": 85, "used_hours": 0, "remaining": 197, "remaining_days": 24.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.3, "predicted_year_end_h": 197, "predicted_year_end_days": 24.6, "status": "zero", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0774", "name": "邵凡芹", "join_date": "2024/06/20", "seniority": "1年11個月", "total_entitled": 70.5, "annual_hours": 69, "ext_hours": 1.5, "used_hours": 38.5, "remaining": 32.0, "remaining_days": 4.0, "used_pct": 54.6, "gap_pct": -12.9, "gap_days": 1.1, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0989", "name": "烏嘉蓤", "join_date": "2024/02/20", "seniority": "2年3個月", "total_entitled": 48, "annual_hours": 48, "ext_hours": 0, "used_hours": 0, "remaining": 48, "remaining_days": 6.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.5, "predicted_year_end_h": 48, "predicted_year_end_days": 6.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "ALP425", "name": "李佩蓉", "join_date": "2023/06/26", "seniority": "2年11個月", "total_entitled": 97, "annual_hours": 97, "ext_hours": 0, "used_hours": 0, "remaining": 97, "remaining_days": 12.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.1, "predicted_year_end_h": 97, "predicted_year_end_days": 12.1, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0081", "name": "連之璇", "join_date": "2019/10/21", "seniority": "6年7個月", "total_entitled": 151, "annual_hours": 120, "ext_hours": 31, "used_hours": 44.5, "remaining": 106.5, "remaining_days": 13.3, "used_pct": 29.5, "gap_pct": 12.2, "gap_days": 2.3, "predicted_year_end_h": 44.2, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0541", "name": "凃怡菁", "join_date": "2022/04/18", "seniority": "4年1個月", "total_entitled": 215, "annual_hours": 112, "ext_hours": 103, "used_hours": 0, "remaining": 215, "remaining_days": 26.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.2, "predicted_year_end_h": 215, "predicted_year_end_days": 26.9, "status": "zero", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0575", "name": "廖筱婷", "join_date": "2022/06/13", "seniority": "3年11個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 29, "remaining": 83, "remaining_days": 10.4, "used_pct": 25.9, "gap_pct": 15.8, "gap_days": 2.2, "predicted_year_end_h": 42.4, "predicted_year_end_days": 5.3, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0730", "name": "黃弘昱", "join_date": "2023/08/01", "seniority": "2年9個月", "total_entitled": 99.5, "annual_hours": 93, "ext_hours": 6.5, "used_hours": 16, "remaining": 83.5, "remaining_days": 10.4, "used_pct": 16.1, "gap_pct": 25.6, "gap_days": 3.2, "predicted_year_end_h": 61.1, "predicted_year_end_days": 7.6, "status": "high_risk", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0932", "name": "李以蓁", "join_date": "2024/06/03", "seniority": "1年11個月", "total_entitled": 82, "annual_hours": 70, "ext_hours": 12, "used_hours": 34.5, "remaining": 47.5, "remaining_days": 5.9, "used_pct": 42.1, "gap_pct": -0.4, "gap_days": 0.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0935", "name": "馮書紜", "join_date": "2023/03/13", "seniority": "3年2個月", "total_entitled": 114, "annual_hours": 106, "ext_hours": 8, "used_hours": 32, "remaining": 82, "remaining_days": 10.2, "used_pct": 28.1, "gap_pct": 13.6, "gap_days": 1.9, "predicted_year_end_h": 37.2, "predicted_year_end_days": 4.6, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0936", "name": "田鈞元", "join_date": "2023/07/03", "seniority": "2年10個月", "total_entitled": 96, "annual_hours": 96, "ext_hours": 0, "used_hours": 24, "remaining": 72, "remaining_days": 9.0, "used_pct": 25.0, "gap_pct": 16.7, "gap_days": 2.0, "predicted_year_end_h": 38.4, "predicted_year_end_days": 4.8, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0937", "name": "宋尚錞", "join_date": "2025/04/21", "seniority": "1年1個月", "total_entitled": 64, "annual_hours": 56, "ext_hours": 8, "used_hours": 4, "remaining": 60, "remaining_days": 7.5, "used_pct": 6.2, "gap_pct": 35.4, "gap_days": 2.8, "predicted_year_end_h": 54.4, "predicted_year_end_days": 6.8, "status": "high_risk", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "AT0344", "name": "陳國洲", "join_date": "2025/09/01", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "HR-BP", "dept_name": "HR-BP", "emp_id": "P259", "name": "曹家寧", "join_date": "2020/08/03", "seniority": "5年9個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 0, "remaining": 120, "remaining_days": 15.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.2, "predicted_year_end_h": 120, "predicted_year_end_days": 15.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "B9-行政", "dept_name": "B9-行政", "emp_id": "0159", "name": "林憶涵", "join_date": "2025/02/24", "seniority": "1年3個月", "total_entitled": 64, "annual_hours": 56, "ext_hours": 8, "used_hours": 32.5, "remaining": 31.5, "remaining_days": 3.9, "used_pct": 50.8, "gap_pct": -9.1, "gap_days": 0.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-行政", "dept_name": "B9-行政", "emp_id": "0249", "name": "林宣苡", "join_date": "2020/11/30", "seniority": "5年6個月", "total_entitled": 127, "annual_hours": 120, "ext_hours": 7, "used_hours": 20.5, "remaining": 106.5, "remaining_days": 13.3, "used_pct": 16.1, "gap_pct": 25.5, "gap_days": 4.1, "predicted_year_end_h": 77.8, "predicted_year_end_days": 9.7, "status": "high_risk", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-行政", "dept_name": "B9-行政", "emp_id": "0814", "name": "郭炘佐", "join_date": "2024/09/02", "seniority": "1年8個月", "total_entitled": 103, "annual_hours": 64, "ext_hours": 39, "used_hours": 0, "remaining": 103, "remaining_days": 12.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.4, "predicted_year_end_h": 103, "predicted_year_end_days": 12.9, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-行政", "dept_name": "B9-行政", "emp_id": "0881", "name": "張瑞庭", "join_date": "2025/02/24", "seniority": "1年3個月", "total_entitled": 72, "annual_hours": 56, "ext_hours": 16, "used_hours": 22, "remaining": 50, "remaining_days": 6.2, "used_pct": 30.6, "gap_pct": 11.1, "gap_days": 1.0, "predicted_year_end_h": 19.2, "predicted_year_end_days": 2.4, "status": "normal", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-行政", "dept_name": "B9-行政", "emp_id": "0914", "name": "劉晟弘", "join_date": "2025/07/01", "seniority": "0年10個月", "total_entitled": 84, "annual_hours": 56, "ext_hours": 28, "used_hours": 9, "remaining": 75, "remaining_days": 9.4, "used_pct": 10.7, "gap_pct": 31.0, "gap_days": 3.2, "predicted_year_end_h": 62.4, "predicted_year_end_days": 7.8, "status": "high_risk", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-出貨", "dept_name": "B9-出貨", "emp_id": "0129", "name": "張博閔", "join_date": "2019/07/15", "seniority": "6年10個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-出貨", "dept_name": "B9-出貨", "emp_id": "0624", "name": "張惠媗", "join_date": "2022/08/08", "seniority": "3年9個月", "total_entitled": 154.5, "annual_hours": 112, "ext_hours": 42.5, "used_hours": 0, "remaining": 154.5, "remaining_days": 19.3, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.0, "predicted_year_end_h": 154.5, "predicted_year_end_days": 19.3, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-QC", "dept_name": "B9-QC", "emp_id": "0791", "name": "劉哲維", "join_date": "2024/07/01", "seniority": "1年10個月", "total_entitled": 124, "annual_hours": 68, "ext_hours": 56, "used_hours": 0, "remaining": 124, "remaining_days": 15.5, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.5, "predicted_year_end_h": 124, "predicted_year_end_days": 15.5, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-SOM", "dept_name": "B9-SOM", "emp_id": "0887", "name": "簡秀芳", "join_date": "2025/03/12", "seniority": "1年2個月", "total_entitled": 58.5, "annual_hours": 56, "ext_hours": 2.5, "used_hours": 29.5, "remaining": 29.0, "remaining_days": 3.6, "used_pct": 50.4, "gap_pct": -8.8, "gap_days": 0.6, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-SOM", "dept_name": "B9-SOM", "emp_id": "0894", "name": "徐洛蓁", "join_date": "2025/04/01", "seniority": "1年1個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-SOM", "dept_name": "B9-SOM", "emp_id": "0895", "name": "黃于玲", "join_date": "2025/04/01", "seniority": "1年1個月", "total_entitled": 226, "annual_hours": 120, "ext_hours": 106, "used_hours": 0, "remaining": 226, "remaining_days": 28.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.8, "predicted_year_end_h": 226, "predicted_year_end_days": 28.2, "status": "zero", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "B9-SOM", "dept_name": "B9-SOM", "emp_id": "0898", "name": "歐青鳳", "join_date": "2025/04/08", "seniority": "1年1個月", "total_entitled": 139.5, "annual_hours": 120, "ext_hours": 19.5, "used_hours": 78, "remaining": 61.5, "remaining_days": 7.7, "used_pct": 55.9, "gap_pct": -14.2, "gap_days": 2.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "OMEGA2", "dept_name": "OMEGA2", "emp_id": "ALP505", "name": "陳雅芝", "join_date": "2025/09/09", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2", "dept_name": "OMEGA2", "emp_id": "ALP545", "name": "郭浚紘", "join_date": "2025/09/10", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-行政", "dept_name": "OMEGA2-行政", "emp_id": "0716", "name": "徐敏惠", "join_date": "2023/05/22", "seniority": "3年0個月", "total_entitled": 134, "annual_hours": 100, "ext_hours": 34, "used_hours": 0, "remaining": 134, "remaining_days": 16.8, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.0, "predicted_year_end_h": 134, "predicted_year_end_days": 16.8, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-C5", "dept_name": "OMEGA2-C5", "emp_id": "0427", "name": "韓威", "join_date": "2021/10/18", "seniority": "4年7個月", "total_entitled": 114, "annual_hours": 114, "ext_hours": 0, "used_hours": 2, "remaining": 112, "remaining_days": 14.0, "used_pct": 1.8, "gap_pct": 39.9, "gap_days": 5.7, "predicted_year_end_h": 109.2, "predicted_year_end_days": 13.7, "status": "high_risk", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "C5-行政", "dept_name": "C5-行政", "emp_id": "0356", "name": "王維澤", "join_date": "2021/07/12", "seniority": "4年10個月", "total_entitled": 191.5, "annual_hours": 116, "ext_hours": 75.5, "used_hours": 10, "remaining": 181.5, "remaining_days": 22.7, "used_pct": 5.2, "gap_pct": 36.4, "gap_days": 8.7, "predicted_year_end_h": 167.5, "predicted_year_end_days": 20.9, "status": "high_risk", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-行政", "dept_name": "C5-行政", "emp_id": "0934", "name": "余宸緯", "join_date": "2024/08/13", "seniority": "1年9個月", "total_entitled": 65, "annual_hours": 65, "ext_hours": 0, "used_hours": 32, "remaining": 33, "remaining_days": 4.1, "used_pct": 49.2, "gap_pct": -7.6, "gap_days": 0.6, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "C5"}, {"dept_id": "C5-進貨", "dept_name": "C5-進貨", "emp_id": "0849", "name": "張盛浩", "join_date": "2024/12/02", "seniority": "1年5個月", "total_entitled": 58, "annual_hours": 58, "ext_hours": 0, "used_hours": 42, "remaining": 16, "remaining_days": 2.0, "used_pct": 72.4, "gap_pct": -30.7, "gap_days": 2.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "C5"}, {"dept_id": "C5-進貨", "dept_name": "C5-進貨", "emp_id": "0910", "name": "陸國昭", "join_date": "2025/06/09", "seniority": "0年11個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 56, "remaining": 0, "remaining_days": 0.0, "used_pct": 100.0, "gap_pct": -58.3, "gap_days": 4.1, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "C5"}, {"dept_id": "C5-進貨", "dept_name": "C5-進貨", "emp_id": "0916", "name": "陳泓儒", "join_date": "2025/08/01", "seniority": "0年9個月", "total_entitled": 63, "annual_hours": 56, "ext_hours": 7, "used_hours": 36, "remaining": 27, "remaining_days": 3.4, "used_pct": 57.1, "gap_pct": -15.5, "gap_days": 1.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-進貨", "dept_name": "C5-進貨", "emp_id": "0917", "name": "林昀融", "join_date": "2025/08/01", "seniority": "0年9個月", "total_entitled": 79, "annual_hours": 56, "ext_hours": 23, "used_hours": 56, "remaining": 23, "remaining_days": 2.9, "used_pct": 70.9, "gap_pct": -29.2, "gap_days": 2.9, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-出貨", "dept_name": "C5-出貨", "emp_id": "0747", "name": "徐浚瑝", "join_date": "2023/10/23", "seniority": "2年7個月", "total_entitled": 142, "annual_hours": 86, "ext_hours": 56, "used_hours": 14, "remaining": 128, "remaining_days": 16.0, "used_pct": 9.9, "gap_pct": 31.8, "gap_days": 5.6, "predicted_year_end_h": 108.4, "predicted_year_end_days": 13.6, "status": "high_risk", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-出貨", "dept_name": "C5-出貨", "emp_id": "0886", "name": "吳賸鑫", "join_date": "2025/03/04", "seniority": "1年2個月", "total_entitled": 62, "annual_hours": 56, "ext_hours": 6, "used_hours": 56, "remaining": 6, "remaining_days": 0.8, "used_pct": 90.3, "gap_pct": -48.7, "gap_days": 3.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-出貨", "dept_name": "C5-出貨", "emp_id": "0902", "name": "林保昀", "join_date": "2025/05/12", "seniority": "1年0個月", "total_entitled": 57.5, "annual_hours": 56, "ext_hours": 1.5, "used_hours": 56, "remaining": 1.5, "remaining_days": 0.2, "used_pct": 97.4, "gap_pct": -55.7, "gap_days": 4.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "C5-出貨", "dept_name": "C5-出貨", "emp_id": "0918", "name": "黃于恩", "join_date": "2025/08/01", "seniority": "0年9個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 56, "remaining": 0, "remaining_days": 0.0, "used_pct": 100.0, "gap_pct": -58.3, "gap_days": 4.1, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "C5"}, {"dept_id": "HR-CB", "dept_name": "HR-C&B", "emp_id": "0955", "name": "李佩娣", "join_date": "2025/10/28", "seniority": "0年7個月", "total_entitled": 66, "annual_hours": 66, "ext_hours": 0, "used_hours": 16, "remaining": 50, "remaining_days": 6.2, "used_pct": 24.2, "gap_pct": 17.4, "gap_days": 1.4, "predicted_year_end_h": 27.6, "predicted_year_end_days": 3.4, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "HR-CB", "dept_name": "HR-C&B", "emp_id": "0973", "name": "李郁玟", "join_date": "2026/02/23", "seniority": "0年3個月", "total_entitled": 48, "annual_hours": 48, "ext_hours": 0, "used_hours": 0, "remaining": 48, "remaining_days": 6.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.5, "predicted_year_end_h": 48, "predicted_year_end_days": 6.0, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "業務開發", "dept_name": "業務開發", "emp_id": "0991", "name": "李貞瑩", "join_date": "2024/06/17", "seniority": "1年11個月", "total_entitled": 80, "annual_hours": 80, "ext_hours": 0, "used_hours": 23, "remaining": 57, "remaining_days": 7.1, "used_pct": 28.7, "gap_pct": 12.9, "gap_days": 1.3, "predicted_year_end_h": 24.8, "predicted_year_end_days": 3.1, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0580", "name": "黃鈺翔", "join_date": "2024/11/25", "seniority": "1年6個月", "total_entitled": 93, "annual_hours": 58, "ext_hours": 35, "used_hours": 0, "remaining": 93, "remaining_days": 11.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.8, "predicted_year_end_h": 93, "predicted_year_end_days": 11.6, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0812", "name": "曾煥鈞", "join_date": "2024/09/16", "seniority": "1年8個月", "total_entitled": 103, "annual_hours": 63, "ext_hours": 40, "used_hours": 0, "remaining": 103, "remaining_days": 12.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.4, "predicted_year_end_h": 103, "predicted_year_end_days": 12.9, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0830", "name": "賈志誠", "join_date": "2024/10/21", "seniority": "1年7個月", "total_entitled": 120.5, "annual_hours": 61, "ext_hours": 59.5, "used_hours": 0, "remaining": 120.5, "remaining_days": 15.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 6.3, "predicted_year_end_h": 120.5, "predicted_year_end_days": 15.1, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0835", "name": "古宜峰", "join_date": "2024/10/28", "seniority": "1年7個月", "total_entitled": 101, "annual_hours": 60, "ext_hours": 41, "used_hours": 0, "remaining": 101, "remaining_days": 12.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.3, "predicted_year_end_h": 101, "predicted_year_end_days": 12.6, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0879", "name": "謝佳伶", "join_date": "2025/02/17", "seniority": "1年3個月", "total_entitled": 105, "annual_hours": 56, "ext_hours": 49, "used_hours": 0, "remaining": 105, "remaining_days": 13.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.5, "predicted_year_end_h": 105, "predicted_year_end_days": 13.1, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0922", "name": "鄧淑文", "join_date": "2025/08/11", "seniority": "0年9個月", "total_entitled": 67, "annual_hours": 56, "ext_hours": 11, "used_hours": 13, "remaining": 54, "remaining_days": 6.8, "used_pct": 19.4, "gap_pct": 22.3, "gap_days": 1.9, "predicted_year_end_h": 35.8, "predicted_year_end_days": 4.5, "status": "high_risk", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0929", "name": "賴家君", "join_date": "2025/08/25", "seniority": "0年9個月", "total_entitled": 60, "annual_hours": 56, "ext_hours": 4, "used_hours": 20, "remaining": 40, "remaining_days": 5.0, "used_pct": 33.3, "gap_pct": 8.3, "gap_days": 0.6, "predicted_year_end_h": 12.0, "predicted_year_end_days": 1.5, "status": "normal", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0958", "name": "阮莉雯", "join_date": "2025/11/10", "seniority": "0年6個月", "total_entitled": 64, "annual_hours": 64, "ext_hours": 0, "used_hours": 40, "remaining": 24, "remaining_days": 3.0, "used_pct": 62.5, "gap_pct": -20.8, "gap_days": 1.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0962", "name": "魏健泰", "join_date": "2025/12/01", "seniority": "0年5個月", "total_entitled": 61, "annual_hours": 61, "ext_hours": 0, "used_hours": 0, "remaining": 61, "remaining_days": 7.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 3.2, "predicted_year_end_h": 61, "predicted_year_end_days": 7.6, "status": "zero", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0964", "name": "羅睿烽", "join_date": "2025/12/09", "seniority": "0年5個月", "total_entitled": 60, "annual_hours": 60, "ext_hours": 0, "used_hours": 9.5, "remaining": 50.5, "remaining_days": 6.3, "used_pct": 15.8, "gap_pct": 25.8, "gap_days": 1.9, "predicted_year_end_h": 37.2, "predicted_year_end_days": 4.7, "status": "high_risk", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-營運整備", "dept_name": "OMEGA2-營運整備組", "emp_id": "0947", "name": "鄭慈鳳", "join_date": "2024/07/08", "seniority": "1年10個月", "total_entitled": 73.5, "annual_hours": 68, "ext_hours": 5.5, "used_hours": 35, "remaining": 38.5, "remaining_days": 4.8, "used_pct": 47.6, "gap_pct": -6.0, "gap_days": 0.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-營運整備", "dept_name": "OMEGA2-營運整備組", "emp_id": "0948", "name": "鄭宜君", "join_date": "2024/09/16", "seniority": "1年8個月", "total_entitled": 63, "annual_hours": 63, "ext_hours": 0, "used_hours": 13, "remaining": 50, "remaining_days": 6.2, "used_pct": 20.6, "gap_pct": 21.0, "gap_days": 1.7, "predicted_year_end_h": 31.8, "predicted_year_end_days": 4.0, "status": "high_risk", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-營運整備", "dept_name": "OMEGA2-營運整備組", "emp_id": "0951", "name": "高彩玲", "join_date": "2024/08/26", "seniority": "1年9個月", "total_entitled": 115, "annual_hours": 64, "ext_hours": 51, "used_hours": 8, "remaining": 107, "remaining_days": 13.4, "used_pct": 7.0, "gap_pct": 34.7, "gap_days": 5.0, "predicted_year_end_h": 95.8, "predicted_year_end_days": 12.0, "status": "high_risk", "has_expiring": true, "warehouse": "OMEGA2"}, {"dept_id": "OMEGA2-營運整備", "dept_name": "OMEGA2-營運整備組", "emp_id": "0959", "name": "楊伃萱", "join_date": "2025/11/10", "seniority": "0年6個月", "total_entitled": 64, "annual_hours": 64, "ext_hours": 0, "used_hours": 8.5, "remaining": 55.5, "remaining_days": 6.9, "used_pct": 13.3, "gap_pct": 28.4, "gap_days": 2.3, "predicted_year_end_h": 43.6, "predicted_year_end_days": 5.5, "status": "high_risk", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "DY1F-大夜班-可樂", "dept_name": "DY1F-大夜班-可樂", "emp_id": "0301", "name": "莊明憲", "join_date": "2021/03/02", "seniority": "5年2個月", "total_entitled": 164.5, "annual_hours": 119, "ext_hours": 45.5, "used_hours": 40, "remaining": 124.5, "remaining_days": 15.6, "used_pct": 24.3, "gap_pct": 17.4, "gap_days": 3.6, "predicted_year_end_h": 68.5, "predicted_year_end_days": 8.6, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-大夜班-可樂", "dept_name": "DY1F-大夜班-可樂", "emp_id": "0864", "name": "陳俊嘉", "join_date": "2025/03/29", "seniority": "1年2個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 39, "remaining": 17, "remaining_days": 2.1, "used_pct": 69.6, "gap_pct": -28.0, "gap_days": 2.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0154", "name": "郭祐誠", "join_date": "2020/02/03", "seniority": "6年3個月", "total_entitled": 239, "annual_hours": 120, "ext_hours": 119, "used_hours": 0, "remaining": 239, "remaining_days": 29.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.4, "predicted_year_end_h": 239, "predicted_year_end_days": 29.9, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0227", "name": "魏梓仰", "join_date": "2020/12/02", "seniority": "5年5個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 101.5, "remaining": 18.5, "remaining_days": 2.3, "used_pct": 84.6, "gap_pct": -42.9, "gap_days": 6.4, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0300", "name": "黃心怡", "join_date": "2021/03/02", "seniority": "5年2個月", "total_entitled": 157, "annual_hours": 119, "ext_hours": 38, "used_hours": 0, "remaining": 157, "remaining_days": 19.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.2, "predicted_year_end_h": 157, "predicted_year_end_days": 19.6, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0373", "name": "朱怡瑄", "join_date": "2021/08/02", "seniority": "4年9個月", "total_entitled": 147.5, "annual_hours": 115, "ext_hours": 32.5, "used_hours": 0, "remaining": 147.5, "remaining_days": 18.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.7, "predicted_year_end_h": 147.5, "predicted_year_end_days": 18.4, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0853", "name": "栢緒承", "join_date": "2024/11/18", "seniority": "1年6個月", "total_entitled": 67.5, "annual_hours": 59, "ext_hours": 8.5, "used_hours": 1, "remaining": 66.5, "remaining_days": 8.3, "used_pct": 1.5, "gap_pct": 40.2, "gap_days": 3.4, "predicted_year_end_h": 65.1, "predicted_year_end_days": 8.1, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "DY1F-早班-可樂", "dept_name": "DY1F-早班-可樂", "emp_id": "0865", "name": "莊鎧銘", "join_date": "2024/12/02", "seniority": "1年5個月", "total_entitled": 58, "annual_hours": 58, "ext_hours": 0, "used_hours": 58, "remaining": 0, "remaining_days": 0.0, "used_pct": 100.0, "gap_pct": -58.3, "gap_days": 4.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "DY1F"}, {"dept_id": "EC-HJ-行政", "dept_name": "EC-HJ-行政", "emp_id": "0125", "name": "周佳君", "join_date": "2019/07/08", "seniority": "6年10個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 92, "remaining": 28, "remaining_days": 3.5, "used_pct": 76.7, "gap_pct": -35.0, "gap_days": 5.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "EC"}, {"dept_id": "EC-HJ-行政", "dept_name": "EC-HJ-行政", "emp_id": "0212", "name": "林葦璇", "join_date": "2020/07/22", "seniority": "5年10個月", "total_entitled": 172.5, "annual_hours": 120, "ext_hours": 52.5, "used_hours": 8, "remaining": 164.5, "remaining_days": 20.6, "used_pct": 4.6, "gap_pct": 37.0, "gap_days": 8.0, "predicted_year_end_h": 153.3, "predicted_year_end_days": 19.2, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-啟善-行政", "dept_name": "EC-啟善-行政", "emp_id": "0137", "name": "孫逢嘉", "join_date": "2019/07/02", "seniority": "6年10個月", "total_entitled": 125.5, "annual_hours": 120, "ext_hours": 5.5, "used_hours": 70, "remaining": 55.5, "remaining_days": 6.9, "used_pct": 55.8, "gap_pct": -14.1, "gap_days": 2.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0127", "name": "陳秀姍", "join_date": "2021/03/08", "seniority": "5年2個月", "total_entitled": 231, "annual_hours": 119, "ext_hours": 112, "used_hours": 0, "remaining": 231, "remaining_days": 28.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.0, "predicted_year_end_h": 231, "predicted_year_end_days": 28.9, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0319", "name": "林煌韋", "join_date": "2021/04/19", "seniority": "5年1個月", "total_entitled": 192.5, "annual_hours": 118, "ext_hours": 74.5, "used_hours": 0, "remaining": 192.5, "remaining_days": 24.1, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.0, "predicted_year_end_h": 192.5, "predicted_year_end_days": 24.1, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0425", "name": "連玉銘", "join_date": "2021/10/15", "seniority": "4年7個月", "total_entitled": 226, "annual_hours": 114, "ext_hours": 112, "used_hours": 0, "remaining": 226, "remaining_days": 28.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 11.8, "predicted_year_end_h": 226, "predicted_year_end_days": 28.2, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0617", "name": "沈文凱", "join_date": "2022/08/01", "seniority": "3年9個月", "total_entitled": 157.5, "annual_hours": 112, "ext_hours": 45.5, "used_hours": 6.5, "remaining": 151.0, "remaining_days": 18.9, "used_pct": 4.1, "gap_pct": 37.5, "gap_days": 7.4, "predicted_year_end_h": 141.9, "predicted_year_end_days": 17.7, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0618", "name": "簡筠菱", "join_date": "2022/08/01", "seniority": "3年9個月", "total_entitled": 148, "annual_hours": 112, "ext_hours": 36, "used_hours": 28, "remaining": 120, "remaining_days": 15.0, "used_pct": 18.9, "gap_pct": 22.7, "gap_days": 4.2, "predicted_year_end_h": 80.8, "predicted_year_end_days": 10.1, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0903", "name": "楊政展", "join_date": "2025/05/12", "seniority": "1年0個月", "total_entitled": 67, "annual_hours": 56, "ext_hours": 11, "used_hours": 12.5, "remaining": 54.5, "remaining_days": 6.8, "used_pct": 18.7, "gap_pct": 23.0, "gap_days": 1.9, "predicted_year_end_h": 37.0, "predicted_year_end_days": 4.6, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0906", "name": "張凱琳", "join_date": "2025/07/01", "seniority": "0年10個月", "total_entitled": 80, "annual_hours": 56, "ext_hours": 24, "used_hours": 1, "remaining": 79, "remaining_days": 9.9, "used_pct": 1.2, "gap_pct": 40.4, "gap_days": 4.0, "predicted_year_end_h": 77.6, "predicted_year_end_days": 9.7, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-進貨", "dept_name": "EC-進貨", "emp_id": "0174", "name": "郭心子", "join_date": "2020/04/01", "seniority": "6年1個月", "total_entitled": 157.5, "annual_hours": 120, "ext_hours": 37.5, "used_hours": 0, "remaining": 157.5, "remaining_days": 19.7, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.2, "predicted_year_end_h": 157.5, "predicted_year_end_days": 19.7, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-進貨", "dept_name": "EC-進貨", "emp_id": "0239", "name": "郭亦子", "join_date": "2025/07/01", "seniority": "0年10個月", "total_entitled": 56.5, "annual_hours": 56, "ext_hours": 0.5, "used_hours": 46.5, "remaining": 10.0, "remaining_days": 1.2, "used_pct": 82.3, "gap_pct": -40.6, "gap_days": 2.9, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-進貨", "dept_name": "EC-進貨", "emp_id": "0436", "name": "卓雅琳", "join_date": "2021/11/01", "seniority": "4年6個月", "total_entitled": 158, "annual_hours": 113, "ext_hours": 45, "used_hours": 35, "remaining": 123, "remaining_days": 15.4, "used_pct": 22.2, "gap_pct": 19.5, "gap_days": 3.9, "predicted_year_end_h": 74.0, "predicted_year_end_days": 9.2, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-進貨", "dept_name": "EC-進貨", "emp_id": "0604", "name": "曹美春", "join_date": "2022/07/25", "seniority": "3年10個月", "total_entitled": 113.5, "annual_hours": 112, "ext_hours": 1.5, "used_hours": 50.5, "remaining": 63.0, "remaining_days": 7.9, "used_pct": 44.5, "gap_pct": -2.8, "gap_days": 0.4, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-加工", "dept_name": "EC-加工", "emp_id": "0518", "name": "呂昱潔", "join_date": "2022/03/01", "seniority": "4年2個月", "total_entitled": 196, "annual_hours": 112, "ext_hours": 84, "used_hours": 0, "remaining": 196, "remaining_days": 24.5, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 10.2, "predicted_year_end_h": 196, "predicted_year_end_days": 24.5, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-加工", "dept_name": "EC-加工", "emp_id": "0519", "name": "何維芳", "join_date": "2022/03/01", "seniority": "4年2個月", "total_entitled": 132, "annual_hours": 112, "ext_hours": 20, "used_hours": 35, "remaining": 97, "remaining_days": 12.1, "used_pct": 26.5, "gap_pct": 15.2, "gap_days": 2.5, "predicted_year_end_h": 48.0, "predicted_year_end_days": 6.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-退貨", "dept_name": "EC-退貨", "emp_id": "0204", "name": "周銀珍", "join_date": "2020/06/01", "seniority": "5年11個月", "total_entitled": 120.5, "annual_hours": 120, "ext_hours": 0.5, "used_hours": 74.5, "remaining": 46.0, "remaining_days": 5.8, "used_pct": 61.8, "gap_pct": -20.2, "gap_days": 3.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-退貨", "dept_name": "EC-退貨", "emp_id": "0389", "name": "吳婕瑈", "join_date": "2021/09/01", "seniority": "4年8個月", "total_entitled": 130, "annual_hours": 115, "ext_hours": 15, "used_hours": 68, "remaining": 62, "remaining_days": 7.8, "used_pct": 52.3, "gap_pct": -10.6, "gap_days": 1.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "EC-退貨", "dept_name": "EC-退貨", "emp_id": "0603", "name": "陳淑萍", "join_date": "2022/07/26", "seniority": "3年10個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 39, "remaining": 73, "remaining_days": 9.1, "used_pct": 34.8, "gap_pct": 6.8, "gap_days": 1.0, "predicted_year_end_h": 18.4, "predicted_year_end_days": 2.3, "status": "normal", "has_expiring": false, "warehouse": "EC"}, {"dept_id": "EC-退貨", "dept_name": "EC-退貨", "emp_id": "0613", "name": "謝淑玲", "join_date": "2022/08/01", "seniority": "3年9個月", "total_entitled": 113, "annual_hours": 112, "ext_hours": 1, "used_hours": 19.5, "remaining": 93.5, "remaining_days": 11.7, "used_pct": 17.3, "gap_pct": 24.4, "gap_days": 3.4, "predicted_year_end_h": 66.2, "predicted_year_end_days": 8.3, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "B3-常溫", "dept_name": "B3-常溫", "emp_id": "0554", "name": "林佳莉", "join_date": "2022/05/09", "seniority": "4年0個月", "total_entitled": 160.5, "annual_hours": 112, "ext_hours": 48.5, "used_hours": 48, "remaining": 112.5, "remaining_days": 14.1, "used_pct": 29.9, "gap_pct": 11.8, "gap_days": 2.4, "predicted_year_end_h": 45.3, "predicted_year_end_days": 5.7, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-1F出貨", "dept_name": "B3-常溫-1F出貨", "emp_id": "0037", "name": "潘雅芳", "join_date": "2018/09/03", "seniority": "7年8個月", "total_entitled": 120.5, "annual_hours": 120, "ext_hours": 0.5, "used_hours": 110.5, "remaining": 10.0, "remaining_days": 1.2, "used_pct": 91.7, "gap_pct": -50.0, "gap_days": 7.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-1F出貨", "dept_name": "B3-常溫-1F出貨", "emp_id": "0502", "name": "張伯安", "join_date": "2022/02/15", "seniority": "4年3個月", "total_entitled": 112.5, "annual_hours": 112, "ext_hours": 0.5, "used_hours": 36, "remaining": 76.5, "remaining_days": 9.6, "used_pct": 32.0, "gap_pct": 9.7, "gap_days": 1.4, "predicted_year_end_h": 26.1, "predicted_year_end_days": 3.3, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-1F出貨", "dept_name": "B3-常溫-1F出貨", "emp_id": "0555", "name": "林裔宸", "join_date": "2025/04/07", "seniority": "1年1個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 43.5, "remaining": 12.5, "remaining_days": 1.6, "used_pct": 77.7, "gap_pct": -36.0, "gap_days": 2.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "B3"}, {"dept_id": "B3-常溫-2F出貨", "dept_name": "B3-常溫-2F出貨", "emp_id": "0121", "name": "廖翊君", "join_date": "2018/12/10", "seniority": "7年5個月", "total_entitled": 122, "annual_hours": 120, "ext_hours": 2, "used_hours": 92, "remaining": 30, "remaining_days": 3.8, "used_pct": 75.4, "gap_pct": -33.7, "gap_days": 5.1, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-2F出貨", "dept_name": "B3-常溫-2F出貨", "emp_id": "0750", "name": "吳婕妘", "join_date": "2023/10/23", "seniority": "2年7個月", "total_entitled": 86.5, "annual_hours": 86, "ext_hours": 0.5, "used_hours": 50.5, "remaining": 36.0, "remaining_days": 4.5, "used_pct": 58.4, "gap_pct": -16.7, "gap_days": 1.8, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-進貨", "dept_name": "B3-常溫-進貨", "emp_id": "0556", "name": "黃木霖", "join_date": "2022/05/16", "seniority": "4年0個月", "total_entitled": 124, "annual_hours": 112, "ext_hours": 12, "used_hours": 70, "remaining": 54, "remaining_days": 6.8, "used_pct": 56.5, "gap_pct": -14.8, "gap_days": 2.3, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-進貨", "dept_name": "B3-常溫-進貨", "emp_id": "0639", "name": "莊佩庭", "join_date": "2022/08/22", "seniority": "3年9個月", "total_entitled": 114.5, "annual_hours": 112, "ext_hours": 2.5, "used_hours": 29.5, "remaining": 85.0, "remaining_days": 10.6, "used_pct": 25.8, "gap_pct": 15.9, "gap_days": 2.3, "predicted_year_end_h": 43.7, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-退貨", "dept_name": "B3-常溫-退貨", "emp_id": "0198", "name": "張嘉琳", "join_date": "2019/04/22", "seniority": "7年1個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-常溫-退貨", "dept_name": "B3-常溫-退貨", "emp_id": "0640", "name": "李佳蓉", "join_date": "2022/08/22", "seniority": "3年9個月", "total_entitled": 150, "annual_hours": 112, "ext_hours": 38, "used_hours": 20, "remaining": 130, "remaining_days": 16.2, "used_pct": 13.3, "gap_pct": 28.3, "gap_days": 5.3, "predicted_year_end_h": 102.0, "predicted_year_end_days": 12.8, "status": "high_risk", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝", "dept_name": "B3-美妝", "emp_id": "0237", "name": "陳秀貞", "join_date": "2020/10/01", "seniority": "5年7個月", "total_entitled": 144.5, "annual_hours": 120, "ext_hours": 24.5, "used_hours": 24.5, "remaining": 120.0, "remaining_days": 15.0, "used_pct": 17.0, "gap_pct": 24.7, "gap_days": 4.5, "predicted_year_end_h": 85.7, "predicted_year_end_days": 10.7, "status": "high_risk", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-出貨", "dept_name": "B3-美妝-出貨", "emp_id": "0433", "name": "林建山", "join_date": "2021/10/25", "seniority": "4年7個月", "total_entitled": 139, "annual_hours": 113, "ext_hours": 26, "used_hours": 49.5, "remaining": 89.5, "remaining_days": 11.2, "used_pct": 35.6, "gap_pct": 6.1, "gap_days": 1.1, "predicted_year_end_h": 20.2, "predicted_year_end_days": 2.5, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-出貨", "dept_name": "B3-美妝-出貨", "emp_id": "0438", "name": "吳宸鋒", "join_date": "2021/11/01", "seniority": "4年6個月", "total_entitled": 139, "annual_hours": 113, "ext_hours": 26, "used_hours": 7.5, "remaining": 131.5, "remaining_days": 16.4, "used_pct": 5.4, "gap_pct": 36.3, "gap_days": 6.3, "predicted_year_end_h": 121.0, "predicted_year_end_days": 15.1, "status": "high_risk", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-出貨", "dept_name": "B3-美妝-出貨", "emp_id": "0510", "name": "蔡政紘", "join_date": "2022/03/01", "seniority": "4年1個月", "total_entitled": 112.5, "annual_hours": 112, "ext_hours": 0.5, "used_hours": 70.5, "remaining": 42.0, "remaining_days": 5.2, "used_pct": 62.7, "gap_pct": -21.0, "gap_days": 3.0, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-出貨", "dept_name": "B3-美妝-出貨", "emp_id": "0690", "name": "洪淑娟", "join_date": "2022/11/01", "seniority": "3年6個月", "total_entitled": 170.5, "annual_hours": 112, "ext_hours": 58.5, "used_hours": 0, "remaining": 170.5, "remaining_days": 21.3, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.9, "predicted_year_end_h": 170.5, "predicted_year_end_days": 21.3, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-出貨", "dept_name": "B3-美妝-出貨", "emp_id": "0897", "name": "李志平", "join_date": "2025/04/07", "seniority": "1年1個月", "total_entitled": 63, "annual_hours": 56, "ext_hours": 7, "used_hours": 21, "remaining": 42, "remaining_days": 5.2, "used_pct": 33.3, "gap_pct": 8.3, "gap_days": 0.7, "predicted_year_end_h": 12.6, "predicted_year_end_days": 1.6, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-進退貨", "dept_name": "B3-美妝-進退貨", "emp_id": "0507", "name": "吳佩妏", "join_date": "2022/03/01", "seniority": "4年2個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 72, "remaining": 40, "remaining_days": 5.0, "used_pct": 64.3, "gap_pct": -22.6, "gap_days": 3.2, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "B3"}, {"dept_id": "B3-美妝-進退貨", "dept_name": "B3-美妝-進退貨", "emp_id": "0513", "name": "吳嘉純", "join_date": "2022/03/01", "seniority": "4年2個月", "total_entitled": 112, "annual_hours": 112, "ext_hours": 0, "used_hours": 59, "remaining": 53, "remaining_days": 6.6, "used_pct": 52.7, "gap_pct": -11.0, "gap_days": 1.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "B3"}, {"dept_id": "B3-美妝-進退貨", "dept_name": "B3-美妝-進退貨", "emp_id": "0891", "name": "謝秉佑", "join_date": "2025/04/01", "seniority": "1年1個月", "total_entitled": 64, "annual_hours": 56, "ext_hours": 8, "used_hours": 48.5, "remaining": 15.5, "remaining_days": 1.9, "used_pct": 75.8, "gap_pct": -34.1, "gap_days": 2.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-跨區加工", "dept_name": "B3-美妝-跨區加工", "emp_id": "0704", "name": "高羽欣", "join_date": "2022/11/02", "seniority": "3年6個月", "total_entitled": 155, "annual_hours": 112, "ext_hours": 43, "used_hours": 0, "remaining": 155, "remaining_days": 19.4, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 8.1, "predicted_year_end_h": 155, "predicted_year_end_days": 19.4, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-跨區加工", "dept_name": "B3-美妝-跨區加工", "emp_id": "0822", "name": "林欣宜", "join_date": "2024/10/07", "seniority": "1年7個月", "total_entitled": 95.5, "annual_hours": 62, "ext_hours": 33.5, "used_hours": 0, "remaining": 95.5, "remaining_days": 11.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 5.0, "predicted_year_end_h": 95.5, "predicted_year_end_days": 11.9, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-美妝-跨區加工", "dept_name": "B3-美妝-跨區加工", "emp_id": "0896", "name": "劉玉婷", "join_date": "2025/04/07", "seniority": "1年1個月", "total_entitled": 67.5, "annual_hours": 56, "ext_hours": 11.5, "used_hours": 20, "remaining": 47.5, "remaining_days": 5.9, "used_pct": 29.6, "gap_pct": 12.0, "gap_days": 1.0, "predicted_year_end_h": 19.5, "predicted_year_end_days": 2.4, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-跨區支援", "dept_name": "B3-跨區支援", "emp_id": "0144", "name": "吳宗祐", "join_date": "2018/05/01", "seniority": "8年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "B3-跨區支援", "dept_name": "B3-跨區支援", "emp_id": "0191", "name": "沈禹慶", "join_date": "2018/07/02", "seniority": "7年10個月", "total_entitled": 120, "annual_hours": 120, "ext_hours": 0, "used_hours": 62, "remaining": 58, "remaining_days": 7.2, "used_pct": 51.7, "gap_pct": -10.0, "gap_days": 1.5, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "B3"}]};
+
+// ===== LIVE STORE (可被上傳資料覆蓋) =====
+let store = JSON.parse(JSON.stringify(INIT_DATA));
+
+// ===== CONSTANTS =====
+const PS = 20; // page size
+const MONTH = 5;
+const TIME_PCT = MONTH/12*100; // 41.67
+const WARN_GAP = 20;
+const COLORS = {
+  WS:'#E24B4A', B3:'#378ADD', B9:'#7F77DD', EC:'#1D9E75',
+  DY1F:'#EF9F27', DY2F:'#E8834A', HASS:'#1A9EA8', HA:'#D4537E',
+  OMEGA2:'#639922', C5:'#BA7517', MF:'#B4B2A9'
+};
+
+// ===== STATE =====
+const ST = {
+  riskA: {p:1,sort:'gap_pct',dir:-1,q:'',dept:'',wh:'',exp:''},
+  riskB: {p:1,sort:'gap_pct',dir:1,q:'',dept:'',wh:''},
+  zero:  {p:1,sort:'name',dir:1,q:'',dept:'',wh:''},
+  maintain:{p:1,sort:'dept_name',dir:1,q:'',dept:'',wh:''},
+};
+
+// ===== BOOT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initKPI(); initPies(); initDeptBars(); initMonthPills();
+  fillSelects();
+  renderRiskA(); renderRiskB(); renderZero(); renderMaintain();
+  initCounters();
+});
+
+function initKPI(){
+  const s = store.summary;
+  set('k-total', s.total);
+  set('k-risk', s.high_risk);
+  set('k-zero', s.zero_used);
+  set('k-ext', s.ext_total_h.toLocaleString()+'h');
+  set('k-avg', s.avg_used_pct+'%');
+  set('k-avg-sub', `時間進度 ${TIME_PCT.toFixed(1)}%，落差 ${(TIME_PCT-s.avg_used_pct).toFixed(1)}%`);
+}
+function initCounters(){
+  set('cnt-riskA', store.summary.high_risk);
+  set('cnt-riskB', store.summary.normal);
+  set('cnt-zero', store.summary.zero_used);
+  set('cnt-maintain', store.summary.total);
+}
+function set(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+// ===== PIES =====
+function initPies(){
+  const ws = store.warehouse_stats;
+  const keys = Object.keys(ws).sort();
+  buildPie('pie1-wrap','pie1-sub', keys, k=>ws[k].high_risk, k=>ws[k].high_risk+'人', 'risk');
+  buildPie('pie2-wrap','pie2-sub', keys, k=>{
+    const r=ws[k].total_h-ws[k].used_h;
+    return ws[k].total_h>0?r/ws[k].total_h*100:0;
+  }, k=>{
+    const r=ws[k].total_h-ws[k].used_h;
+    return ws[k].total_h>0?(r/ws[k].total_h*100).toFixed(0)+'%':'0%';
+  }, 'remain');
+  buildPie('pie3-wrap','pie3-sub', keys, k=>ws[k].ext_h, k=>ws[k].ext_h.toLocaleString()+'h', 'ext');
+}
+
+function buildPie(wrapId, subId, keys, valFn, lblFn, type){
+  const wrap = document.getElementById(wrapId);
+  const vals = keys.map(k=>Math.max(0,valFn(k)));
+  const total = vals.reduce((a,b)=>a+b,0);
+  if(!total){ wrap.innerHTML='<span style="font-size:12px;color:var(--text3)">無資料</span>'; return; }
+  const R=46,cx=58,cy=58,sw=20,circ=2*Math.PI*R;
+  let off=0, paths='';
+  keys.forEach((k,i)=>{
+    const pct=vals[i]/total, dash=pct*circ, gap=circ-dash;
+    const col=COLORS[k]||'#ccc';
+    paths+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${(-off*circ).toFixed(2)}" style="cursor:pointer" onclick="toggleSub('${subId}','${k}','${type}')"/>`;
+    off+=pct;
+  });
+  const svg=`<svg width="116" height="116" viewBox="0 0 116 116" style="flex-shrink:0">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-size:10px;fill:var(--text3)">合計</text><text x="${cx}" y="${cy+12}" text-anchor="middle" style="font-size:13px;font-weight:700;fill:var(--text);font-family:DM Mono,monospace">${total.toLocaleString()}</text></svg>`;
+  let leg='';
+  keys.forEach((k,i)=>{
+    const col=COLORS[k]||'#ccc';
+    const pct=total>0?(vals[i]/total*100).toFixed(0):0;
+    leg+=`<div class="pli" onclick="toggleSub('${subId}','${k}','${type}')">
+      <div class="pdot" style="background:${col}"></div>
+      <span class="pname">${k}</span>
+      <span class="pval">${lblFn(k)}</span>
+      <span class="ppct">${pct}%</span>
+      <span style="font-size:11px;color:var(--text3)">›</span>
+    </div>`;
+  });
+  wrap.innerHTML=`${svg}<div class="pie-legend">${leg}</div>`;
+}
+
+const activeSub={};
+function toggleSub(subId, wk, type){
+  const box=document.getElementById(subId);
+  if(activeSub[subId]===wk && box.style.display!=='none'){ box.style.display='none'; activeSub[subId]=''; return; }
+  activeSub[subId]=wk;
+  const emps=store.employees.filter(e=>e.warehouse===wk);
+  const dm={};
+  emps.forEach(e=>{
+    if(!dm[e.dept_name]) dm[e.dept_name]={th:0,uh:0,eh:0,risk:0};
+    dm[e.dept_name].th+=e.total_entitled; dm[e.dept_name].uh+=e.used_hours;
+    dm[e.dept_name].eh+=e.ext_hours;
+    if(e.status==='high_risk') dm[e.dept_name].risk++;
+  });
+  const depts=Object.entries(dm).sort((a,b)=>b[1].risk-a[1].risk);
+  let maxV=0;
+  depts.forEach(([,d])=>{
+    const v=type==='risk'?d.risk:type==='remain'?(d.th>0?(d.th-d.uh)/d.th*100:0):d.eh;
+    maxV=Math.max(maxV,v);
+  });
+  let html=`<div class="subdept-title">${wk} 子部門明細</div>`;
+  depts.forEach(([name,d])=>{
+    let val,lbl,col;
+    if(type==='risk'){val=d.risk;lbl=d.risk+'人';col='#E24B4A';}
+    else if(type==='remain'){val=d.th>0?(d.th-d.uh)/d.th*100:0;lbl=val.toFixed(0)+'%';col='#EF9F27';}
+    else{val=d.eh;lbl=d.eh.toLocaleString()+'h';col='#7F77DD';}
+    const pct=maxV>0?val/maxV*100:0;
+    html+=`<div class="sdr"><span class="sdname">${name}</span><div class="sdtrack"><div class="sdfill" style="width:${pct.toFixed(1)}%;background:${col}"></div></div><span class="sdval">${lbl}</span></div>`;
+  });
+  box.innerHTML=html; box.style.display='block';
+}
+
+// ===== DEPT BARS =====
+function initDeptBars(){
+  const ws=store.warehouse_stats;
+  const keys=Object.keys(ws).sort();
+  let html='';
+  keys.forEach(k=>{
+    const s=ws[k]; if(!s.total_h) return;
+    const pct=s.used_h/s.total_h*100;
+    const col=pct<21.7?'var(--red)':pct<35?'var(--amber)':'var(--green)';
+    const tc=pct<21.7?'var(--red)':pct<35?'var(--amber)':'var(--green)';
+    html+=`<div class="bar-row">
+      <span class="bar-label">${k}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${col}"></div>
+        <div class="bar-marker" style="left:41.67%"></div>
+      </div>
+      <span class="bar-pct" style="color:${tc}">${pct.toFixed(1)}%</span>
+    </div>`;
+  });
+  document.getElementById('dept-bars').innerHTML=html;
+}
+
+// ===== MONTH PILLS =====
+function initMonthPills(){
+  const ms=[['1','8.3'],['2','16.7'],['3','25.0'],['4','33.3'],['5','41.7★'],
+            ['6','50.0'],['7','58.3'],['8','66.7'],['9','75.0'],['10','83.3'],['11','91.7'],['12','100.0']];
+  document.getElementById('month-pills').innerHTML=ms.map(([m,p],i)=>
+    `<span class="mpill ${i===4?'cur':i<4?'past':'fut'}">${m}月 ${p}%</span>`
+  ).join('');
+}
+function togglePref(){
+  const b=document.getElementById('pref-box'); b.classList.toggle('open');
+  document.querySelector('.pref-btn').textContent=b.classList.contains('open')?'▾ 1–12月進度參考表':'▸ 1–12月進度參考表';
+}
+
+// ===== SELECTS =====
+function fillSelects(){
+  const depts=[...new Set(store.employees.map(e=>e.dept_name))].sort();
+  const whs=[...new Set(store.employees.map(e=>e.warehouse))].sort();
+  ['riskA','riskB','zero','mt'].forEach(t=>{
+    const ds=document.getElementById(`f-${t}-dept`);
+    const ws=document.getElementById(`f-${t}-wh`);
+    depts.forEach(d=>{ if(ds){ const o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o); }});
+    whs.forEach(w=>{ if(ws){ const o=document.createElement('option'); o.value=w; o.textContent=w; ws.appendChild(o); }});
+  });
+}
+
+// ===== TABLE UTILS =====
+function getFiltered(type){
+  const s=ST[type];
+  let data=store.employees.filter(e=>{
+    if(type==='riskA') return e.status==='high_risk';
+    if(type==='riskB') return e.status==='normal';
+    if(type==='zero') return e.status==='zero';
+    return true;
+  });
+  if(s.q) data=data.filter(e=>e.name.includes(s.q)||e.emp_id.includes(s.q));
+  if(s.dept) data=data.filter(e=>e.dept_name===s.dept);
+  if(s.wh) data=data.filter(e=>e.warehouse===s.wh);
+  if(type==='riskA'&&s.exp) data=data.filter(e=>e.has_expiring);
+  data.sort((a,b)=>{
+    let av=a[s.sort]||0, bv=b[s.sort]||0;
+    if(typeof av==='string') return s.dir*av.localeCompare(bv,'zh');
+    return s.dir*(bv-av);
+  });
+  return data;
+}
+function srt(type,field){
+  const s=ST[type];
+  if(s.sort===field) s.dir*=-1; else{s.sort=field;s.dir=-1;}
+  s.p=1; refreshTable(type);
+}
+function refreshTable(type){
+  if(type==='riskA') renderRiskA();
+  else if(type==='riskB') renderRiskB();
+  else if(type==='zero') renderZero();
+  else renderMaintain();
+}
+function pgHTML(type, total){
+  const s=ST[type], pages=Math.ceil(total/PS);
+  if(pages<=1) return '';
+  let h=`<span class="pg-info">共 ${total} 筆</span>`;
+  h+=`<button class="pgb" onclick="goP('${type}',${s.p-1})" ${s.p===1?'disabled':''}>‹</button>`;
+  const st=Math.max(1,s.p-2), en=Math.min(pages,s.p+2);
+  if(st>1) h+=`<button class="pgb" onclick="goP('${type}',1)">1</button>${st>2?'<span style="font-size:12px;color:var(--text3)">…</span>':''}`;
+  for(let i=st;i<=en;i++) h+=`<button class="pgb ${i===s.p?'on':''}" onclick="goP('${type}',${i})">${i}</button>`;
+  if(en<pages) h+=`${en<pages-1?'<span style="font-size:12px;color:var(--text3)">…</span>':''}<button class="pgb" onclick="goP('${type}',${pages})">${pages}</button>`;
+  h+=`<button class="pgb" onclick="goP('${type}',${s.p+1})" ${s.p===pages?'disabled':''}>›</button>`;
+  return h;
+}
+function goP(type,p){
+  const data=getFiltered(type), pages=Math.ceil(data.length/PS);
+  if(p<1||p>pages) return;
+  ST[type].p=p; refreshTable(type);
+}
+function ckAll(g,v){ document.querySelectorAll(`#tb-risk${g} input[type=checkbox]`).forEach(c=>c.checked=v); }
+
+// ===== EMP ROW =====
+function eRow(e, showGap=true, showChk=true){
+  const gSign=e.gap_pct>0?'落後':'超前';
+  const gCol=e.gap_pct>30?'var(--red)':e.gap_pct>20?'var(--amber)':'var(--green)';
+  const gCell=showGap?`<td style="color:${gCol};font-weight:600;font-family:var(--mono)">${Math.abs(e.gap_pct)}%<br><span style="font-size:10px;font-weight:400">${gSign} ${Math.abs(e.gap_days)}天</span></td>`:'';
+  const tags=(e.has_expiring?'<span class="badge b-purple">延長到期</span>':'')+
+    (e.status==='high_risk'?'<span class="badge b-red">高風險</span>':e.status==='normal'?'<span class="badge b-green">正常</span>':'');
+  const chk=showChk?`<td><input type="checkbox"></td>`:'';
+  return `<tr>${chk}
+    <td style="font-family:var(--mono);color:var(--text2);font-size:11px">${e.emp_id}</td>
+    <td style="font-weight:500">${e.name}</td>
+    <td style="color:var(--text2)">${e.dept_name}</td>
+    <td><span style="font-size:10px;padding:1px 6px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">${e.warehouse||''}</span></td>
+    <td style="font-family:var(--mono)">${e.total_entitled}</td>
+    <td style="font-family:var(--mono)">${e.used_hours}</td>
+    <td style="font-family:var(--mono)">${e.remaining}</td>
+    ${gCell}
+    <td>${tags}</td>
+  </tr>`;
+}
+
+// ===== RENDER TABLES =====
+function renderRiskA(){
+  const s=ST.riskA;
+  s.q=document.getElementById('f-riskA-q').value;
+  s.dept=document.getElementById('f-riskA-dept').value;
+  s.wh=document.getElementById('f-riskA-wh').value;
+  s.exp=document.getElementById('f-riskA-exp').value;
+  s.p=1;
+  const data=getFiltered('riskA');
+  const page=data.slice((s.p-1)*PS, s.p*PS);
+  document.getElementById('tb-riskA').innerHTML=page.map(e=>eRow(e,true,true)).join('');
+  document.getElementById('pg-riskA').innerHTML=pgHTML('riskA',data.length);
+  set('cnt-riskA',data.length);
+}
+function renderRiskB(){
+  const s=ST.riskB;
+  s.q=document.getElementById('f-riskB-q').value;
+  s.dept=document.getElementById('f-riskB-dept').value;
+  s.wh=document.getElementById('f-riskB-wh').value;
+  s.p=1;
+  const data=getFiltered('riskB');
+  const page=data.slice((s.p-1)*PS, s.p*PS);
+  document.getElementById('tb-riskB').innerHTML=page.map(e=>eRow(e,true,true)).join('');
+  document.getElementById('pg-riskB').innerHTML=pgHTML('riskB',data.length);
+  set('cnt-riskB',data.length);
+}
+function renderZero(){
+  const s=ST.zero;
+  s.q=document.getElementById('f-zero-q').value;
+  s.dept=document.getElementById('f-zero-dept').value;
+  s.wh=document.getElementById('f-zero-wh').value;
+  s.p=1;
+  const data=getFiltered('zero');
+  const page=data.slice((s.p-1)*PS, s.p*PS);
+  document.getElementById('tb-zero').innerHTML=page.map(e=>`<tr>
+    <td style="font-family:var(--mono);color:var(--text2);font-size:11px">${e.emp_id}</td>
+    <td style="font-weight:500">${e.name}</td>
+    <td style="color:var(--text2)">${e.dept_name}</td>
+    <td><span style="font-size:10px;padding:1px 6px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">${e.warehouse||''}</span></td>
+    <td style="font-family:var(--mono)">${e.total_entitled}</td>
+    <td style="font-family:var(--mono)">${e.ext_hours}</td>
+    <td style="color:var(--text2)">${e.join_date}</td>
+    <td style="color:var(--text2)">${e.seniority}</td>
+    <td>${e.has_expiring?'<span class="badge b-purple">延長到期</span>':''}<span class="badge b-gray">請主管確認</span></td>
+  </tr>`).join('');
+  document.getElementById('pg-zero').innerHTML=pgHTML('zero',data.length);
+  set('cnt-zero',data.length);
+}
+function renderMaintain(){
+  const s=ST.maintain;
+  s.q=document.getElementById('f-mt-q').value;
+  s.dept=document.getElementById('f-mt-dept').value;
+  s.wh=document.getElementById('f-mt-wh').value;
+  const data=getFiltered('maintain');
+  const page=data.slice((s.p-1)*PS, s.p*PS);
+  document.getElementById('tb-maintain').innerHTML=page.map(e=>`<tr>
+    <td><input type="checkbox"></td>
+    <td style="font-family:var(--mono);color:var(--text2);font-size:11px">${e.emp_id}</td>
+    <td style="font-weight:500">${e.name}</td>
+    <td style="color:var(--text2)">${e.dept_name}</td>
+    <td><span style="font-size:10px;padding:1px 6px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">${e.warehouse||''}</span></td>
+    <td style="font-family:var(--mono)">${e.annual_hours}</td>
+    <td style="font-family:var(--mono)">${e.ext_hours}</td>
+    <td style="font-family:var(--mono);font-weight:600">${e.total_entitled}</td>
+    <td style="font-family:var(--mono)">${e.used_hours}</td>
+    <td style="font-family:var(--mono)">${e.remaining}</td>
+    <td><button class="btn" style="padding:2px 8px;font-size:11px">編輯</button></td>
+  </tr>`).join('');
+  document.getElementById('pg-maintain').innerHTML=pgHTML('maintain',data.length);
+  set('cnt-maintain',data.length);
+}
+
+// ===== PREDICT =====
+function initPredict(){
+  const ws=store.warehouse_stats;
+  const keys=Object.keys(ws).sort();
+  const totPredH=Object.values(ws).reduce((a,b)=>a+b.predict_h,0);
+  const extH=store.summary.ext_total_h;
+  set('p-total-h',Math.round(totPredH).toLocaleString()+'h');
+  set('p-total-d','≈ '+Math.round(totPredH/8).toLocaleString()+' 人天');
+  set('p-ext-h',extH.toLocaleString()+'h');
+  set('p-ext-d','≈ '+Math.round(extH/8).toLocaleString()+' 人天，年底恐換代金');
+  set('p-excl',store.summary.zero_used+'人');
+
+  let html='';
+  keys.forEach(k=>{
+    const s=ws[k]; if(!s.total_h) return;
+    const usedPct=s.used_h/s.total_h*100;
+    const addPct=Math.min((s.used_h/5*7)/s.total_h*100, 100-usedPct);
+    const remPct=Math.max(0,100-usedPct-addPct);
+    const remH=Math.round(s.total_h*remPct/100);
+    const remD=Math.round(remH/8);
+    const cls=remPct>40?'bad':remPct>20?'warn':'ok';
+    html+=`<div class="thermo-row">
+      <span class="thermo-lbl">${k}</span>
+      <div class="thermo-track">
+        <div class="th-used" style="width:${Math.min(usedPct,100).toFixed(1)}%"></div>
+        <div class="th-pred" style="left:${usedPct.toFixed(1)}%;width:${addPct.toFixed(1)}%"></div>
+        <div class="th-now" style="left:41.67%"></div>
+        <div class="th-ideal" style="left:99%"></div>
+      </div>
+      <span class="thermo-rval ${cls}">剩 ~${remH.toLocaleString()}h / ${remD}天</span>
+    </div>`;
+  });
+  document.getElementById('thermo-rows').innerHTML=html;
+  drawBurndown(ws);
+}
+
+function drawBurndown(ws){
+  const canvas=document.getElementById('burndown');
+  const W=canvas.offsetWidth||700, H=220;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const totalH=Object.values(ws).reduce((a,b)=>a+b.total_h,0);
+  const usedH=Object.values(ws).reduce((a,b)=>a+b.used_h,0);
+  const rate=usedH/MONTH;
+  const pad={l:56,r:16,t:20,b:28};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const toX=m=>pad.l+(m/12)*cw;
+  const toY=v=>pad.t+ch-(v/totalH)*ch;
+  // grid
+  ctx.strokeStyle='#e2ddd6'; ctx.lineWidth=0.5;
+  for(let m=0;m<=12;m+=3){ ctx.beginPath(); ctx.moveTo(toX(m),pad.t); ctx.lineTo(toX(m),pad.t+ch); ctx.stroke(); }
+  for(let i=0;i<=4;i++){
+    const v=i/4*totalH;
+    ctx.beginPath(); ctx.moveTo(pad.l,toY(v)); ctx.lineTo(pad.l+cw,toY(v)); ctx.stroke();
+    ctx.fillStyle='#9c9a94'; ctx.font='10px DM Mono,monospace'; ctx.textAlign='right';
+    ctx.fillText(Math.round(v/1000)+'k', pad.l-4, toY(v)+4);
+  }
+  // month labels
+  ctx.fillStyle='#9c9a94'; ctx.font='10px Noto Sans TC,sans-serif'; ctx.textAlign='center';
+  [2,4,6,8,10,12].forEach(m=>ctx.fillText(m+'月',toX(m),H-6));
+  // ideal line
+  ctx.strokeStyle='#1a7a4a'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]); ctx.globalAlpha=.65;
+  ctx.beginPath(); ctx.moveTo(toX(0),toY(totalH)); ctx.lineTo(toX(12),toY(0)); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha=1;
+  // actual+predict
+  ctx.strokeStyle='#378add'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let m=0;m<=12;m++){
+    const rem=Math.max(0,totalH-rate*m);
+    m===0?ctx.moveTo(toX(m),toY(totalH)):ctx.lineTo(toX(m),toY(rem));
+  }
+  ctx.stroke();
+  // actual dots
+  ctx.fillStyle='#378add';
+  for(let m=1;m<=MONTH;m++){
+    const rem=Math.max(0,totalH-rate*m);
+    ctx.beginPath(); ctx.arc(toX(m),toY(rem),3.5,0,Math.PI*2); ctx.fill();
+  }
+  // predict shade
+  ctx.fillStyle='rgba(55,138,221,0.05)';
+  ctx.fillRect(toX(MONTH),pad.t,toX(12)-toX(MONTH),ch);
+  // now line
+  ctx.strokeStyle='#1a1917'; ctx.lineWidth=1.2; ctx.setLineDash([3,3]); ctx.globalAlpha=.35;
+  ctx.beginPath(); ctx.moveTo(toX(MONTH),pad.t); ctx.lineTo(toX(MONTH),pad.t+ch); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha=1;
+  ctx.fillStyle='#5c5a56'; ctx.font='10px Noto Sans TC,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('現在',toX(MONTH),pad.t-6);
+}
+
+// ===== UPLOAD =====
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+function handleFiles(files){
+  if(!files||!files.length) return;
+  Array.from(files).forEach(f=>processFile(f));
+}
+
+function processFile(file){
+  const list=document.getElementById('upload-list');
+  const itemId='upf-'+Date.now()+Math.random().toString(36).slice(2);
+  list.innerHTML+=`<div class="upload-item" id="${itemId}">
+    <span class="fname">${file.name}</span>
+    <div style="flex:1">
+      <div class="upload-progress"><div class="upload-progress-fill" id="prog-${itemId}" style="width:0%"></div></div>
+    </div>
+    <span id="stat-${itemId}" style="font-size:11px;color:var(--text3)">處理中…</span>
+  </div>`;
+
+  const ext=file.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      let rows=[];
+      if(ext==='csv'){
+        rows=parseCSV(e.target.result);
+      } else {
+        const wb=XLSX.read(e.target.result,{type:'binary'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      }
+      document.getElementById(`prog-${itemId}`).style.width='60%';
+      const result=mergeData(rows, file.name);
+      document.getElementById(`prog-${itemId}`).style.width='100%';
+      document.getElementById(`stat-${itemId}`).textContent=`✓ 新增${result.added}筆，更新${result.updated}筆`;
+      document.getElementById(`stat-${itemId}`).style.color='var(--green)';
+      rebuildStats();
+      refreshAllViews();
+      logMerge(`[${file.name}] 新增 ${result.added} 筆，覆蓋更新 ${result.updated} 筆，共處理 ${result.added+result.updated} 筆。`);
+    } catch(err){
+      document.getElementById(`stat-${itemId}`).textContent='✗ 解析失敗：'+err.message;
+      document.getElementById(`stat-${itemId}`).style.color='var(--red)';
+    }
+  };
+  if(ext==='csv') reader.readAsText(file,'UTF-8');
+  else reader.readAsBinaryString(file);
+}
+
+function parseCSV(text){
+  return text.split('\n').map(l=>l.split(',').map(c=>c.trim().replace(/^"|"$/g,'')));
+}
+
+// 合併邏輯：解析上傳資料並merge進store.employees
+function mergeData(rows, fname){
+  // --- 自動辨識「HR原生系統」四層表頭格式 ---
+  // 特徵：第一行 col0='部門名稱', col1='員工編號'，資料從第5行(index 4)開始
+  const isSystemExport = rows.length > 4 &&
+                         String(rows[0][0]||'').trim() === '部門名稱' &&
+                         String(rows[0][1]||'').trim() === '員工編號';
+
+  if (isSystemExport) {
+    let added = 0, updated = 0;
+    for(let i = 4; i < rows.length; i++){
+      const row = rows[i];
+      if(!row || !row[1] || String(row[1]).trim() === '') continue;
+      // 過濾尾端備註行
+      const empIdRaw = String(row[1]).trim();
+      if(empIdRaw.length > 20 || empIdRaw.includes('。')) continue;
+
+      const dept_name  = String(row[0]||'').trim();
+      const emp_id     = empIdRaw;
+      const name       = String(row[2]||'').trim();
+      if(!name) continue;
+
+      // 欄位對應（已對照實際 Excel 欄序驗證）：
+      // col4=保留假日, col5=保留假時, col6=年休日, col7=年休時
+      // col14=已休合計日, col15=已休合計時
+      // col20=剩餘保留假日, col21=剩餘保留假時
+      const ext_hours    = (parseFloat(row[4])||0)*8 + (parseFloat(row[5])||0);
+      const annual_hours = (parseFloat(row[6])||0)*8 + (parseFloat(row[7])||0);
+      const total        = ext_hours + annual_hours;
+      const used         = (parseFloat(row[14])||0)*8 + (parseFloat(row[15])||0);
+      const remain_ext   = (parseFloat(row[20])||0)*8 + (parseFloat(row[21])||0);
+
+      if(total <= 0) continue;
+
+      const remaining = total - used;
+      const usedPct   = used / total * 100;
+      const gap       = TIME_PCT - usedPct;
+      const status    = used === 0 ? 'zero' : gap > WARN_GAP ? 'high_risk' : 'normal';
+      const wh        = getWH(dept_name);
+
+      const newRec = {
+        dept_id:               dept_name,
+        dept_name:             dept_name,
+        emp_id:                emp_id,
+        name:                  name,
+        join_date:             String(row[3]||'').trim(),
+        seniority:             '-',
+        ext_hours:             Math.round(ext_hours*10)/10,
+        annual_hours:          Math.round(annual_hours*10)/10,
+        used_hours:            Math.round(used*10)/10,
+        has_expiring:          remain_ext > 0,
+        warehouse:             wh,
+        total_entitled:        Math.round(total*10)/10,
+        remaining:             Math.round(remaining*10)/10,
+        used_pct:              Math.round(usedPct*10)/10,
+        gap_pct:               Math.round(gap*10)/10,
+        gap_days:              Math.round(Math.abs(gap)*total/8*10)/10,
+        predicted_year_end_h:  Math.max(0, Math.round((total - used/MONTH*12)*10)/10),
+        predicted_year_end_days: 0,
+        status:                status
+      };
+
+      const existIdx = store.employees.findIndex(e => e.emp_id === emp_id);
+      if(existIdx >= 0){
+        const oldRec = store.employees[existIdx];
+        // 保留舊的真實到職日與年資（避免被系統預設的 2026-01-01 蓋掉）
+        if(oldRec.seniority && oldRec.seniority !== '-'){
+          newRec.join_date  = oldRec.join_date;
+          newRec.seniority  = oldRec.seniority;
+        }
+        store.employees[existIdx] = Object.assign({}, oldRec, newRec);
+        updated++;
+      } else {
+        store.employees.push(newRec);
+        added++;
+      }
+    }
+    return {added, updated};
+  }
+
+  // --- 以下為原本「標準模板」的解析邏輯（保留兼容性）---
+  let headerIdx=-1;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const row=rows[i].map(c=>String(c));
+    if(row.some(c=>c.includes('員工編號')||c.includes('員編'))){headerIdx=i;break;}
+  }
+  if(headerIdx<0) throw new Error('找不到欄位標題行，請確認格式');
+  const headers=rows[headerIdx].map(c=>String(c).trim());
+
+  const idx={
+    dept_id:   findCol(headers,['部門編號']),
+    dept_name: findCol(headers,['部門']),
+    emp_id:    findCol(headers,['員工編號','員編']),
+    name:      findCol(headers,['姓名']),
+    join_date: findCol(headers,['年資到職日','到職日']),
+    seniority: findCol(headers,['年資']),
+    ext_h:     findCol(headers,['特休假可休(時)','特休假可休']),
+    annual_h:  findCol(headers,['年度可休']),
+    used_h:    findCol(headers,['已休(時)','已休']),
+    remain_h:  findCol(headers,['未休(時)','未休']),
+    note:      findCol(headers,['備註']),
+    ext_used:  findCol(headers,['延長'])
+  };
+  if(idx.emp_id<0||idx.name<0) throw new Error('缺少必要欄位（員工編號、姓名）');
+
+  const empMap={};
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const row=rows[i];
+    if(!row||row.every(c=>!c)) continue;
+    const empId=String(row[idx.emp_id]||'').trim();
+    const name=String(row[idx.name]||'').trim();
+    if(!empId||!name) continue;
+    const key=empId+'__'+name;
+    if(!empMap[key]) empMap[key]={
+      dept_id:String(row[idx.dept_id]||'').trim(),
+      dept_name:String(row[idx.dept_name]||'').trim(),
+      emp_id:empId, name,
+      join_date:String(row[idx.join_date]||'').trim(),
+      seniority:String(row[idx.seniority]||'').trim(),
+      ext_hours:0, annual_hours:0, used_hours:0, has_expiring:false
+    };
+    const note=idx.note>=0?String(row[idx.note]||''):'';
+    const isExt=note.includes('延長');
+    if(isExt){
+      const extH=parseFloat(row[idx.ext_h]||0)||0;
+      empMap[key].ext_hours+=Math.max(0,extH);
+      empMap[key].has_expiring=true;
+    } else {
+      empMap[key].annual_hours+=parseFloat(row[idx.annual_h]||0)||0;
+      empMap[key].used_hours+=parseFloat(row[idx.used_h]||0)||0;
+    }
+  }
+
+  let added=0, updated=0;
+  Object.values(empMap).forEach(emp=>{
+    const total=emp.annual_hours+emp.ext_hours;
+    const used=emp.used_hours;
+    const remaining=total-used;
+    if(total<=0) return;
+    const usedPct=used/total*100;
+    const gap=TIME_PCT-usedPct;
+    const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
+    const wh=getWH(emp.dept_id||emp.dept_name);
+    const newRec={
+      ...emp, warehouse:wh,
+      total_entitled:Math.round(total*10)/10,
+      remaining:Math.round(remaining*10)/10,
+      used_pct:Math.round(usedPct*10)/10,
+      gap_pct:Math.round(gap*10)/10,
+      gap_days:Math.round(Math.abs(gap)*total/8*10)/10,
+      predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),
+      predicted_year_end_days:0,
+      status
+    };
+    const existIdx=store.employees.findIndex(e=>e.emp_id===emp.emp_id);
+    if(existIdx>=0){ store.employees[existIdx]=newRec; updated++; }
+    else { store.employees.push(newRec); added++; }
+  });
+  return {added, updated};
+}
+
+function findCol(headers, candidates){
+  for(const c of candidates){
+    const i=headers.findIndex(h=>h.includes(c));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+
+function getWH(deptId){
+  if(!deptId) return 'MF';
+  const d=deptId.toUpperCase();
+  if(d.startsWith('WS')) return 'WS';
+  if(d.startsWith('B3')) return 'B3';
+  if(d.startsWith('B9')) return 'B9';
+  if(d.startsWith('EC')) return 'EC';
+  if(d.startsWith('DY1F')) return 'DY1F';
+  if(d.startsWith('DY2F')) return 'DY2F';
+  if(d.startsWith('HASS')) return 'HASS';
+  if(d==='HA'||d.startsWith('HA-')) return 'HA';
+  if(d.startsWith('OMEGA')) return 'OMEGA2';
+  if(d.startsWith('C5')) return 'C5';
+  return 'MF';
+}
+
+function rebuildStats(){
+  const ws={};
+  store.employees.forEach(e=>{
+    const w=e.warehouse||'MF';
+    if(!ws[w]) ws[w]={total:0,high_risk:0,normal:0,zero:0,total_h:0,used_h:0,ext_h:0,predict_h:0};
+    ws[w].total++; ws[w].total_h+=e.total_entitled; ws[w].used_h+=e.used_hours;
+    ws[w].ext_h+=e.ext_hours; ws[w].predict_h+=e.predicted_year_end_h;
+    if(e.status==='high_risk') ws[w].high_risk++;
+    else if(e.status==='zero') ws[w].zero++;
+    else ws[w].normal++;
+  });
+  store.warehouse_stats=ws;
+  const all=store.employees;
+  store.summary={
+    total:all.length,
+    high_risk:all.filter(e=>e.status==='high_risk').length,
+    zero_used:all.filter(e=>e.status==='zero').length,
+    normal:all.filter(e=>e.status==='normal').length,
+    ext_total_h:Math.round(all.reduce((a,e)=>a+e.ext_hours,0)*10)/10,
+    ext_total_days:0,
+    avg_used_pct:Math.round(all.reduce((a,e)=>a+e.used_pct,0)/all.length*10)/10,
+    time_progress_pct:TIME_PCT,
+    current_month:MONTH
+  };
+}
+
+function refreshAllViews(){
+  initKPI(); initPies(); initDeptBars(); initPredict(); initCounters();
+  renderRiskA(); renderRiskB(); renderZero(); renderMaintain();
+}
+
+function logMerge(msg){
+  const log=document.getElementById('merge-log');
+  log.style.display='block';
+  log.innerHTML+=`<div>${new Date().toLocaleTimeString()} ${msg}</div>`;
+}
+
+// ===== TEMPLATE DOWNLOAD =====
+function downloadTemplate(){
+  const headers=['部門編號','部門','員工編號','姓名','年資到職日','年資','特休假可休(時)','年度可休','已休(時)','未休(時)','備註','延長'];
+  const ex1=['WS-Customer','WS-行政','0001','王小明','2020/01/01','6年0個月','120','0','30','90','延長至20261231','30'];
+  const ex2=['WS-Customer','WS-行政','0001','王小明','2020/01/01','6年0個月','0','120','45','75','',''];
+  const ex3=['EC-出貨-早','EC-出貨-早','0002','陳小華','2022/06/01','3年11個月','0','112','56','56','',''];
+  const csv='\uFEFF'+[headers,ex1,ex2,ex3].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='年假資料上傳模板.csv';
+  a.click();
+}
+
+// ===== 專屬 Power Automate 的發信 Excel 匯出 =====
+function exportExcelForPA(){
+  const data = getFiltered('riskA');
+  if(data.length === 0) {
+    alert('目前沒有高風險人員名單！');
+    return;
+  }
+  const rows = data.map(e => ({
+    '員編': e.emp_id,
+    '姓名': e.name,
+    '部門': e.dept_name,
+    '年度可休時數': e.total_entitled,
+    '未休時數': e.remaining,
+    '落差百分比': e.gap_pct + '%',
+    '主管信箱': ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '發信名單');
+  XLSX.writeFile(wb, `高風險自動發信名單_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ===== EXPORT =====
+function exportCSV(type){
+  let data;
+  if(type==='riskA') data=store.employees.filter(e=>e.status==='high_risk');
+  else if(type==='riskB') data=store.employees.filter(e=>e.status==='normal');
+  else if(type==='zero') data=store.employees.filter(e=>e.status==='zero');
+  else data=store.employees;
+  const headers=['員編','姓名','部門','倉別','年度可休(h)','延長假(h)','已休(h)','未休(h)','已休%','落差%','落差天數','狀態','延長假到期'];
+  const rows=data.map(e=>[e.emp_id,e.name,e.dept_name,e.warehouse||'',e.total_entitled,e.ext_hours,e.used_hours,e.remaining,e.used_pct,e.gap_pct,e.gap_days,e.status,e.has_expiring?'是':'否']);
+  const csv='\uFEFF'+[headers,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`年假健康_${type}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ===== TABS =====
+function showTab(name,el){
+  ['overview','riskA','riskB','zero','predict','maintain'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='predict') setTimeout(()=>initPredict(),80);
+}
+</script>
+
+</body>
+</html>
