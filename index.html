@@ -30,7 +30,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .tab.active{color:var(--text);border-bottom-color:var(--text)}
 .tab:hover{color:var(--text)}
 .tab.locked::after{content:'🔒';font-size:10px;margin-left:4px;opacity:.5}
-.kpi-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
 .kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
 .kpi-val{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1}
@@ -157,7 +157,7 @@ tr:hover td{background:var(--surface2)}
 .mgr-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
 .mgr-table input{width:100%;padding:4px 7px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:var(--font);background:var(--surface)}
 .mgr-table input:focus{outline:none;border-color:var(--blue)}
-@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
 @media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}.thermo-lbl{width:50px}}
 </style>
 </head>
@@ -174,8 +174,8 @@ tr:hover td{background:var(--surface2)}
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('overview',this)">總覽</div>
-  <div class="tab locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this,'654321')">需關注名單</div>
-  <div class="tab locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this,'654321')">狀況 B — 提醒</div>
+  <div class="tab locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this,'654321')">狀況A-高風險</div>
+  <div class="tab locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this,'654321')">狀況B-正常</div>
   <div class="tab" onclick="showTab('predict',this)">年底預測 BETA</div>
   <div class="tab locked" id="tab-btn-maintain" onclick="showTabLocked('maintain',this,'123456')">資料維護</div>
 </div>
@@ -193,25 +193,19 @@ tr:hover td{background:var(--surface2)}
       <div class="kpi-label">高風險人數</div>
       <div class="kpi-val red" id="k-risk">—</div>
       <div class="kpi-sub">落差 &gt; 20%（5月門檻）</div>
-      <div class="kpi-explain">「落差」= 時間進度（41.7%）− 已休進度。落差超過 20% 代表休假速度明顯落後，若維持現況，年底恐有大量剩餘。</div>
+      <div class="kpi-explain">「落差」= 時間進度（41.7%）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">已休 0，請確認</div>
-      <div class="kpi-val amber" id="k-zero">—</div>
-      <div class="kpi-sub">尚未有任何休假紀錄</div>
-      <div class="kpi-explain">截至資料日期，已休時數為 0。可能原因：尚未申請、申請中未核准、或資料尚未同步。請主管逐一確認。</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">延長假未消化</div>
+      <div class="kpi-label">遞延假未消化</div>
       <div class="kpi-val amber" id="k-ext">—</div>
-      <div class="kpi-sub">遞延假尚未休完時數</div>
-      <div class="kpi-explain">「延長假」為 2025 年遞延至 2026 年的年假，若年底仍未休完，依規定須換算代金，建議主管優先督促安排。</div>
+      <div class="kpi-sub">尚未休完時數</div>
+      <div class="kpi-explain">「遞延假」為 2025 年遞延至 2026 年的年假，應優先消化。若年底仍未休完，依規定須換算代金，請主管優先安排。</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">延長假未消化人數</div>
+      <div class="kpi-label">遞延假未消化人數</div>
       <div class="kpi-val amber" id="k-ext-cnt">—</div>
       <div class="kpi-sub">尚有遞延假未休完的員工</div>
-      <div class="kpi-explain">這些員工持有 2025 年遞延年假，建議主管優先協助安排，避免年底代金損失。</div>
+      <div class="kpi-explain">這些員工持有 2025 年遞延年假，應優先協助安排消化，避免年底代金損失。</div>
     </div>
   </div>
 
@@ -220,16 +214,19 @@ tr:hover td{background:var(--surface2)}
       <div class="card-title">高風險人數 <span class="sub">各部門</span></div>
       <div id="pie1-wrap" class="pie-wrap"></div>
       <div id="pie1-sub" style="display:none" class="subdept-box"></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司高風險總人數。每倉左側數字＝該倉高風險人數，右側灰色%＝該倉占全公司高風險總人數的比例。點選可展開子部門明細。</div>
     </div>
     <div class="card">
-      <div class="card-title">延長假未消化時數 <span class="sub">各部門</span></div>
+      <div class="card-title">遞延假未消化時數 <span class="sub">各部門</span></div>
       <div id="pie2-wrap" class="pie-wrap"></div>
       <div id="pie2-sub" style="display:none" class="subdept-box"></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司遞延假未消化總時數(h)。每倉左側數字＝該倉未消化時數，右側灰色%＝該倉占全公司總時數的比例。點選可展開子部門明細。</div>
     </div>
     <div class="card">
-      <div class="card-title">延長假未消化人數 <span class="sub">各部門，持有遞延假員工</span></div>
+      <div class="card-title">遞延假未消化人數 <span class="sub">各部門，持有遞延假員工</span></div>
       <div id="pie3-wrap" class="pie-wrap"></div>
       <div id="pie3-sub" style="display:none" class="subdept-box"></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司持有遞延假未消化的總人數。每倉左側數字＝該倉人數，右側灰色%＝該倉占全公司總人數的比例。點選可展開子部門明細。</div>
     </div>
   </div>
 
@@ -247,20 +244,15 @@ tr:hover td{background:var(--surface2)}
   </div>
 </div>
 
-<!-- 需關注名單（原狀況A + 已休0合併） -->
+<!-- 狀況A-高風險（休假落差>20%，含完全尚未排休者） -->
 <div id="tab-riskA" style="display:none">
   <div class="card">
-    <div class="card-title">需關注名單 <span class="sub">高風險（落差&gt;20%）+ 已休0，共 <span id="cnt-riskA">0</span> 人</span></div>
+    <div class="card-title">狀況A-高風險 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="renderRiskA()">
-      <select id="f-riskA-type" onchange="renderRiskA()">
-        <option value="">全部類型</option>
-        <option value="high_risk">高風險</option>
-        <option value="zero">已休0</option>
-      </select>
       <select id="f-riskA-dept" onchange="renderRiskA()"><option value="">全部部門</option></select>
       <select id="f-riskA-wh" onchange="renderRiskA()"><option value="">全部倉別</option></select>
-      <select id="f-riskA-exp" onchange="renderRiskA()"><option value="">全部</option><option value="1">延長假到期</option></select>
+      <select id="f-riskA-exp" onchange="renderRiskA()"><option value="">全部</option><option value="1">遞延假到期</option></select>
       <div class="spacer"></div>
       <button class="btn btn-red" onclick="exportExcelForPA()">⬇ 下載發信 Excel</button>
     </div>
@@ -272,11 +264,11 @@ tr:hover td{background:var(--surface2)}
         <th onclick="srt('riskA','dept_name')">部門</th>
         <th onclick="srt('riskA','warehouse')">倉別</th>
         <th onclick="srt('riskA','total_entitled')">年度可休(h)</th>
-        <th onclick="srt('riskA','ext_hours')">延長假(h)</th>
+        <th onclick="srt('riskA','ext_hours')">遞延假(h)</th>
         <th onclick="srt('riskA','used_hours')">已休(h)</th>
         <th onclick="srt('riskA','remaining')">未休(h)</th>
         <th onclick="srt('riskA','gap_pct')">落差</th>
-        <th class="nosort">風險類型</th>
+        <th class="nosort">備註</th>
       </tr></thead><tbody id="tb-riskA"></tbody></table>
     </div></div>
     <div class="pg" id="pg-riskA"></div>
@@ -307,7 +299,7 @@ tr:hover td{background:var(--surface2)}
 <!-- 狀況B -->
 <div id="tab-riskB" style="display:none">
   <div class="card">
-    <div class="card-title">狀況 B — 正常（可發提醒） <span class="sub">共 <span id="cnt-riskB">0</span> 人</span></div>
+    <div class="card-title">狀況B-正常 <span class="sub">休假落差&le;20%，共 <span id="cnt-riskB">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskB-q" oninput="renderRiskB()">
       <select id="f-riskB-dept" onchange="renderRiskB()"><option value="">全部部門</option></select>
@@ -337,8 +329,8 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-predict" style="display:none">
   <div class="kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
     <div class="kpi"><div class="kpi-label">預估全員年底剩餘</div><div class="kpi-val red" id="p-total-h">—</div><div class="kpi-sub" id="p-total-d"></div></div>
-    <div class="kpi"><div class="kpi-label">其中延長假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
-    <div class="kpi"><div class="kpi-label">排除人數（已休 0）</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">不納入速度推算</div></div>
+    <div class="kpi"><div class="kpi-label">其中遞延假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
+    <div class="kpi"><div class="kpi-label">排除人數（尚未排休）</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">已休=0，無法估算消化速度</div></div>
   </div>
   <div class="card">
     <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span></div>
@@ -349,7 +341,7 @@ tr:hover td{background:var(--surface2)}
       <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（5月）</span>
     </div>
     <div id="thermo-rows"></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休0者不納入。</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
   </div>
   <div class="card">
     <div class="card-title">全公司燃盡圖 — 未休時數趨勢 <span class="beta">BETA</span></div>
@@ -365,16 +357,21 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-maintain" style="display:none">
   <div class="card">
     <div class="card-title">上傳新資料
-      <span class="sub">支援 CSV / Excel（.xlsx）；同員編自動覆蓋，新員編自動新增，其他部門資料保留</span>
+      <span class="sub">支援 CSV / Excel（.xlsx）/ PDF（震旦雲年度特休一覽表）</span>
       <button class="btn" style="margin-left:auto" onclick="downloadTemplate()">↓ 下載標準模板 CSV</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+      ・CSV / Excel：同員編自動覆蓋，新員編自動新增，其他部門資料保留<br>
+      ・年度休假天數明細表（英文部門版 .xlsx）：視為「運輸」倉別人員，同員編自動覆蓋、新增<br>
+      ・PDF（震旦雲匯出）：<b style="color:var(--red)">會整份覆蓋目前所有員工資料</b>，上傳前會先跳出確認視窗
     </div>
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
       ondragover="event.preventDefault();this.classList.add('drag')"
       ondragleave="this.classList.remove('drag')"
       ondrop="handleDrop(event)">
-      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" multiple onchange="handleFiles(this.files)">
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.pdf" multiple onchange="handleFiles(this.files)">
       <span class="upload-label">點此選擇檔案，或拖曳至此</span>
-      <span class="upload-sub">支援同時上傳多個檔案（CSV 或 Excel）</span>
+      <span class="upload-sub">支援同時上傳多個檔案（CSV / Excel / PDF）</span>
     </div>
     <div class="upload-list" id="upload-list"></div>
     <div class="merge-log" id="merge-log" style="display:none"></div>
@@ -411,7 +408,7 @@ tr:hover td{background:var(--surface2)}
         <th onclick="srt('maintain','dept_name')">部門</th>
         <th onclick="srt('maintain','warehouse')">倉別</th>
         <th onclick="srt('maintain','annual_hours')">當年度(h)</th>
-        <th onclick="srt('maintain','ext_hours')">延長假(h)</th>
+        <th onclick="srt('maintain','ext_hours')">遞延假(h)</th>
         <th onclick="srt('maintain','total_entitled')">合計可休(h)</th>
         <th onclick="srt('maintain','used_hours')">已休(h)</th>
         <th onclick="srt('maintain','remaining')">未休(h)</th>
@@ -419,13 +416,16 @@ tr:hover td{background:var(--surface2)}
       </tr></thead><tbody id="tb-maintain"></tbody></table>
     </div></div>
     <div class="pg" id="pg-maintain"></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:10px">延長假已自動與當年度假合併計算。上傳新資料後頁面即時更新，重新整理頁面後恢復初始資料（SharePoint 版本可持久化）。</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:10px">遞延假已自動與當年度假合併計算。上傳新資料後頁面即時更新，重新整理頁面後恢復初始資料（SharePoint 版本可持久化）。</div>
   </div>
 </div>
 
 </div><!-- shell -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
 // ===== 密碼鎖 =====
 const LOCK_PASS = { riskA:'654321', riskB:'654321', maintain:'123456' };
 const unlockedTabs = {};
@@ -531,10 +531,10 @@ function buildMails() {
   const ccVal   = document.getElementById('mail-cc').value.trim();
   const mgrTbl  = getMgrTable();
 
-  // 取得需關注名單（高風險 + 已休0）
+  // 取得狀況A-高風險名單（休假落差>20%，含完全尚未排休者）
   const allAtRisk = store.employees.filter(e => e.status === 'high_risk' || e.status === 'zero');
   if (!allAtRisk.length) {
-    document.getElementById('mail-section').innerHTML = '<p style="font-size:12px;color:var(--text3)">目前無需關注人員。</p>';
+    document.getElementById('mail-section').innerHTML = '<p style="font-size:12px;color:var(--text3)">目前無高風險人員。</p>';
     return;
   }
 
@@ -554,37 +554,27 @@ function buildMails() {
     const toEmail = mgr.email || '（請在資料維護頁設定主管Email）';
     const subj = `年假使用率提醒 — ${wh} 倉別（截至 ${period}）`;
 
-    const highRisk = emps.filter(e => e.status === 'high_risk');
-    const zeroUsed = emps.filter(e => e.status === 'zero');
+    const unusedCount = emps.filter(e => e.used_hours === 0).length;
     const extCount = emps.filter(e => e.has_expiring).length;
 
-    let detail = '';
-    if (highRisk.length) {
-      detail += `【高風險 — 休假落差 > 20%，共 ${highRisk.length} 人】\n`;
-      highRisk.forEach(e => {
-        detail += `  ▸ ${e.name}（${e.dept_name}）｜合計可休 ${e.total_entitled}h｜已休 ${e.used_hours}h｜未休 ${e.remaining}h｜落差 ${e.gap_pct}%\n`;
-      });
-      detail += '\n';
-    }
-    if (zeroUsed.length) {
-      detail += `【已休 0，請確認 — 共 ${zeroUsed.length} 人】\n`;
-      zeroUsed.forEach(e => {
-        detail += `  ▸ ${e.name}（${e.dept_name}）｜合計可休 ${e.total_entitled}h${e.has_expiring ? '（含遞延假）' : ''}\n`;
-      });
-    }
+    let detail = `【休假落差 > 20%，共 ${emps.length} 人】\n`;
+    emps.forEach(e => {
+      const tag = e.used_hours === 0 ? '（尚未排休）' : '';
+      detail += `  ▸ ${e.name}（${e.dept_name}）｜合計可休 ${e.total_entitled}h｜已休 ${e.used_hours}h｜未休 ${e.remaining}h｜落差 ${e.gap_pct}%${tag}${e.has_expiring ? '（含遞延假）' : ''}\n`;
+    });
 
     const body =
 `${mgr.name} 主管您好，
 
 以下為截至 ${period} 的部門年假使用狀況通知，請協助確認與追蹤。
 
-本次共有 ${emps.length} 位同仁需要關注（高風險 ${highRisk.length} 人、已休0待確認 ${zeroUsed.length} 人）${extCount ? `，其中 ${extCount} 人持有遞延假尚未消化` : ''}。
+本次共有 ${emps.length} 位同仁休假落差超過 20%${unusedCount ? `（其中 ${unusedCount} 人尚未排休）` : ''}${extCount ? `，${extCount} 人持有遞延假尚未消化` : ''}。
 
 ${detail}
 說明：
-・「高風險」係指已休進度落差超過 20%，若維持現況年底恐有大量剩餘假期。
-・「已休0」係指截至資料日期尚無任何休假紀錄，請主管確認同仁是否已有排休計畫，或資料是否需要更新。
-・遞延假（2025年遞延至2026年）建議優先安排消化，避免年底代金損失。
+・「落差」係指已休進度落後於時間進度超過 20%，若維持現況年底恐有大量剩餘假期，請主管協助安排休假。
+・「尚未排休」係指截至資料日期尚無任何休假紀錄，請主管確認同仁是否已有排休計畫，或資料是否需要更新。
+・遞延假（2025年遞延至2026年）應優先安排消化，避免年底代金損失。
 
 依公司年假預先規劃機制，請協助引導同仁合理安排休假，感謝您的配合。
 
@@ -600,8 +590,8 @@ ${sender}`;
     <div class="mail-card">
       <div class="mail-card-hdr">
         ✉ ${wh} 倉別
-        ${highRisk.length ? `<span class="badge b-red">高風險 ${highRisk.length} 人</span>` : ''}
-        ${zeroUsed.length ? `<span class="badge b-amber">已休0 ${zeroUsed.length} 人</span>` : ''}
+        <span class="badge b-red">高風險 ${emps.length} 人</span>
+        ${unusedCount ? `<span class="badge b-amber">尚未排休 ${unusedCount} 人</span>` : ''}
         ${extCount ? `<span class="badge b-purple">遞延假 ${extCount} 人</span>` : ''}
       </div>
       <div class="mail-field"><span class="mf-lbl">收件人</span><span class="mf-val" id="mail-to-${idx}">${toEmail}</span><button class="copy-btn" onclick="cpEl('mail-to-${idx}',this)">複製</button></div>
@@ -641,18 +631,19 @@ function dlAttachment(wh, idx) {
   const emps = window._mailData?.[idx]?.emps || store.employees.filter(e => e.warehouse === wh && (e.status === 'high_risk' || e.status === 'zero'));
   if (!emps.length) return;
   const wb = XLSX.utils.book_new();
-  const rows = [['員編','姓名','部門','倉別','合計可休(h)','當年度(h)','延長假(h)','已休(h)','未休(h)','落差%','風險類型','延長假到期']];
+  const rows = [['員編','姓名','部門','倉別','合計可休(h)','當年度(h)','遞延假(h)','已休(h)','未休(h)','落差%','風險類型','備註','遞延假到期']];
   emps.forEach(e => rows.push([
     e.emp_id, e.name, e.dept_name, e.warehouse,
     e.total_entitled, e.annual_hours, e.ext_hours,
     e.used_hours, e.remaining, e.gap_pct + '%',
-    e.status === 'high_risk' ? '高風險' : '已休0',
+    '高風險',
+    e.used_hours === 0 ? '尚未排休' : '',
     e.has_expiring ? '是' : '否'
   ]));
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [8,8,18,8,12,12,12,10,10,10,10,10].map(w => ({wch:w}));
-  XLSX.utils.book_append_sheet(wb, ws, '需關注名單');
-  XLSX.writeFile(wb, `年假需關注_${wh}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  ws['!cols'] = [8,8,18,8,12,12,12,10,10,10,10,10,10].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, '狀況A-高風險');
+  XLSX.writeFile(wb, `年假高風險_${wh}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 // ===== DATA =====
@@ -671,7 +662,7 @@ const COLORS = {
 };
 
 const ST = {
-  riskA: {p:1,sort:'gap_pct',dir:-1,q:'',type:'',dept:'',wh:'',exp:''},
+  riskA: {p:1,sort:'gap_pct',dir:-1,q:'',dept:'',wh:'',exp:''},
   riskB: {p:1,sort:'gap_pct',dir:1,q:'',dept:'',wh:''},
   maintain:{p:1,sort:'dept_name',dir:1,q:'',dept:'',wh:''},
 };
@@ -688,9 +679,8 @@ function initKPI(){
   const s = store.summary;
   set('k-total', s.total);
   set('k-risk', s.high_risk);
-  set('k-zero', s.zero_used);
   set('k-ext', s.ext_total_h.toLocaleString() + 'h');
-  // 延長假未消化人數
+  // 遞延假未消化人數
   const extCnt = store.employees.filter(e => e.has_expiring).length;
   set('k-ext-cnt', extCnt + '人');
 }
@@ -709,7 +699,7 @@ function initPies(){
   const keys = Object.keys(ws).sort();
   buildPie('pie1-wrap','pie1-sub', keys, k=>ws[k].high_risk, k=>ws[k].high_risk+'人', 'risk');
   buildPie('pie2-wrap','pie2-sub', keys, k=>ws[k].ext_h, k=>ws[k].ext_h.toLocaleString()+'h', 'ext');
-  // 延長假未消化人數：從 employees 計算各倉別 has_expiring 人數
+  // 遞延假未消化人數：從 employees 計算各倉別 has_expiring 人數
   const extCntByWh = {};
   store.employees.forEach(e => { if(e.has_expiring) extCntByWh[e.warehouse] = (extCntByWh[e.warehouse]||0) + 1; });
   buildPie('pie3-wrap','pie3-sub', keys, k=>extCntByWh[k]||0, k=>(extCntByWh[k]||0)+'人', 'ext_cnt');
@@ -814,8 +804,8 @@ function fillSelects(){
   const whs=[...new Set(store.employees.map(e=>e.warehouse))].sort();
   [['riskA','f-riskA-dept','f-riskA-wh'],['riskB','f-riskB-dept','f-riskB-wh'],['maintain','f-mt-dept','f-mt-wh']].forEach(([,di,wi])=>{
     const ds=document.getElementById(di); const ws2=document.getElementById(wi);
-    if(ds && ds.options.length<=1) depts.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o); });
-    if(ws2 && ws2.options.length<=1) whs.forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=w; ws2.appendChild(o); });
+    if(ds) ds.innerHTML='<option value="">全部部門</option>'+depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+    if(ws2) ws2.innerHTML='<option value="">全部倉別</option>'+whs.map(w=>`<option value="${w}">${w}</option>`).join('');
   });
 }
 
@@ -827,7 +817,6 @@ function getFiltered(type){
     return true;
   });
   if(s.q) data=data.filter(e=>e.name.includes(s.q)||e.emp_id.includes(s.q));
-  if(s.type) data=data.filter(e=>e.status===s.type);
   if(s.dept) data=data.filter(e=>e.dept_name===s.dept);
   if(s.wh) data=data.filter(e=>e.warehouse===s.wh);
   if(type==='riskA'&&s.exp) data=data.filter(e=>e.has_expiring);
@@ -872,7 +861,6 @@ function ckAll(g,v){ document.querySelectorAll(`#tb-risk${g} input[type=checkbox
 function renderRiskA(){
   const s=ST.riskA;
   s.q=(document.getElementById('f-riskA-q')||{}).value||'';
-  s.type=(document.getElementById('f-riskA-type')||{}).value||'';
   s.dept=(document.getElementById('f-riskA-dept')||{}).value||'';
   s.wh=(document.getElementById('f-riskA-wh')||{}).value||'';
   s.exp=(document.getElementById('f-riskA-exp')||{}).value||'';
@@ -881,7 +869,6 @@ function renderRiskA(){
   const page=data.slice((s.p-1)*PS, s.p*PS);
   const tbody=document.getElementById('tb-riskA'); if(!tbody) return;
   tbody.innerHTML=page.map(e=>{
-    const isHighRisk=e.status==='high_risk';
     const gSign=e.gap_pct>0?'落後':'超前';
     const gCol=e.gap_pct>30?'var(--red)':e.gap_pct>20?'var(--amber)':'var(--text2)';
     return `<tr>
@@ -894,8 +881,8 @@ function renderRiskA(){
       <td style="font-family:var(--mono)">${e.ext_hours||0}</td>
       <td style="font-family:var(--mono)">${e.used_hours}</td>
       <td style="font-family:var(--mono)">${e.remaining}</td>
-      <td style="color:${gCol};font-weight:600;font-family:var(--mono)">${isHighRisk?Math.abs(e.gap_pct)+'%<br><span style="font-size:10px;font-weight:400">'+gSign+' '+Math.abs(e.gap_days)+'天</span>':'—'}</td>
-      <td>${isHighRisk?'<span class="badge b-red">高風險</span>':'<span class="badge b-amber">已休0</span>'}${e.has_expiring?'<span class="badge b-purple">遞延假</span>':''}</td>
+      <td style="color:${gCol};font-weight:600;font-family:var(--mono)">${Math.abs(e.gap_pct)}%<br><span style="font-size:10px;font-weight:400">${gSign} ${Math.abs(e.gap_days)}天</span></td>
+      <td>${e.used_hours===0?'<span class="badge b-amber">尚未排休</span>':''}${e.has_expiring?'<span class="badge b-purple">遞延假</span>':''}</td>
     </tr>`;
   }).join('');
   document.getElementById('pg-riskA').innerHTML=pgHTML('riskA',data.length);
@@ -1046,27 +1033,154 @@ function handleFiles(files){
   if(!files||!files.length) return;
   Array.from(files).forEach(f=>processFile(f));
 }
-function processFile(file){
+
+// ---- PDF（震旦雲年度特休一覽表）解析 ----
+// 欄位 x 座標錨點（單位:PDF points）。對應「特休假可休(時)/已休(時)/未休(時)/延長/年度可休/合計」五個數值欄。
+const PDF_COLX = [483, 538, 598, 660, 720];
+function pdfBucket(x){
+  let best=null, bd=999;
+  PDF_COLX.forEach((cx,i)=>{ const d=Math.abs(x-cx); if(d<bd){bd=d;best=i;} });
+  return bd<15 ? best : null;
+}
+function pdfFnum(v){
+  if(v==null) return 0;
+  const n=parseFloat(String(v).replace(/,/g,''));
+  return isNaN(n)?0:n;
+}
+async function parsePDFFile(arrayBuffer){
+  const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+  const empRows=[]; // [dept_id, dept_name, emp_id, name, nums[5]]
+  let lastDeptId='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const byRow={};
+    content.items.forEach(it=>{
+      if(!it.str || !it.str.trim()) return;
+      const x=it.transform[4], y=Math.round(it.transform[5]*2)/2;
+      if(!byRow[y]) byRow[y]=[];
+      byRow[y].push({x, text:it.str.trim()});
+    });
+    const ys=Object.keys(byRow).map(Number).sort((a,b)=>b-a); // 頁面上方先處理
+    ys.forEach(y=>{
+      const ws=byRow[y].slice().sort((a,b)=>a.x-b.x);
+      let dept_id='', dept_name='', emp_id='', name='';
+      const nums=[null,null,null,null,null];
+      ws.forEach(w=>{
+        const x=w.x, t=w.text;
+        if(x>=15&&x<95) dept_id+=t;
+        else if(x>=95&&x<165) dept_name+=t;
+        else if(x>=165&&x<218) emp_id+=t;
+        else if(x>=222&&x<280) name+=t;
+        else if(x>=460&&x<760){ const b=pdfBucket(x); if(b!==null) nums[b]=t; }
+      });
+      if(dept_id) lastDeptId=dept_id;
+      if(emp_id && name){
+        empRows.push([lastDeptId, dept_name, emp_id, name, nums]);
+      }
+    });
+  }
+  if(!empRows.length) throw new Error('找不到任何員工資料列，請確認是否為「年度特休一覽表」PDF');
+
+  // 依「員編+姓名」分組（一位員工可能有1~2列：當年度列 + 遞延假列）
+  const groups = {};
+  const order = [];
+  empRows.forEach(r=>{
+    const key = r[2]+'|'+r[3];
+    if(!groups[key]){ groups[key]=[]; order.push(key); }
+    groups[key].push(r);
+  });
+
+  const employees=[];
+  order.forEach(key=>{
+    const grp = groups[key];
+    const [emp_id, name] = key.split('|');
+    const dept_id = grp[0][0], dept_name = grp[0][1];
+    // base = 「年度可休」(col index1) 數值最大的那一列 = 當年度假列
+    let base = grp[0], bestB = -Infinity;
+    grp.forEach(g=>{ const b=pdfFnum(g[4][1]); if(b>bestB){ bestB=b; base=g; } });
+    const annual = pdfFnum(base[4][1]);
+    const used   = pdfFnum(base[4][3]);
+    const remA   = pdfFnum(base[4][4]);
+    let ext=0, remE=0;
+    grp.forEach(g=>{ if(g!==base){ ext=pdfFnum(g[4][0]); remE=pdfFnum(g[4][2]); } });
+    const total = Math.round((annual+ext)*10)/10;
+    const remaining = Math.round((remA+remE)*10)/10;
+    const usedPct = total>0 ? used/total*100 : 0;
+    const gap = TIME_PCT - usedPct;
+    const status = used===0 ? 'zero' : (gap>WARN_GAP ? 'high_risk' : 'normal');
+    const wh = getWH(dept_id);
+    employees.push({
+      dept_id, dept_name, emp_id, name,
+      join_date:'', seniority:'-',
+      annual_hours: Math.round(annual*10)/10,
+      ext_hours: Math.round(ext*10)/10,
+      total_entitled: total,
+      used_hours: Math.round(used*10)/10,
+      remaining: remaining,
+      used_pct: Math.round(usedPct*10)/10,
+      gap_pct: Math.round(gap*10)/10,
+      gap_days: Math.round(Math.abs(gap)*total/8*10)/10,
+      predicted_year_end_h: Math.max(0, Math.round((total - used/MONTH*12)*10)/10),
+      predicted_year_end_days: 0,
+      status, has_expiring: ext>0, warehouse: wh
+    });
+  });
+  return employees;
+}
+
+async function processFile(file){
   const list=document.getElementById('upload-list');
   const itemId='upf-'+Date.now()+Math.random().toString(36).slice(2);
   list.innerHTML+=`<div class="upload-item" id="${itemId}"><span class="fname">${file.name}</span><div style="flex:1"><div class="upload-progress"><div class="upload-progress-fill" id="prog-${itemId}" style="width:0%"></div></div></div><span id="stat-${itemId}" style="font-size:11px;color:var(--text3)">處理中…</span></div>`;
   const ext=file.name.split('.').pop().toLowerCase();
+  const progEl=document.getElementById(`prog-${itemId}`);
+  const statEl=document.getElementById(`stat-${itemId}`);
+
+  if(ext==='pdf'){
+    try{
+      progEl.style.width='30%';
+      const buf = await file.arrayBuffer();
+      progEl.style.width='60%';
+      const employees = await parsePDFFile(buf);
+      progEl.style.width='90%';
+      const ok = confirm(`PDF 解析出 ${employees.length} 位員工資料。\n\n此操作將「整份覆蓋」目前的員工資料（原 ${store.employees.length} 筆），無法復原（重新整理頁面可恢復初始資料）。\n\n確定要覆蓋嗎？`);
+      if(!ok){
+        statEl.textContent='已取消';
+        statEl.style.color='var(--text3)';
+        progEl.style.width='100%';
+        return;
+      }
+      const oldCount = store.employees.length;
+      store.employees = employees;
+      rebuildStats(); refreshAllViews();
+      progEl.style.width='100%';
+      statEl.textContent=`✓ 整份覆蓋，共 ${employees.length} 筆（原 ${oldCount} 筆）`;
+      statEl.style.color='var(--green)';
+      logMerge(`[${file.name}] PDF 整份覆蓋，共 ${employees.length} 筆員工資料（原 ${oldCount} 筆）`);
+    }catch(err){
+      statEl.textContent='✗ 解析失敗：'+err.message;
+      statEl.style.color='var(--red)';
+    }
+    return;
+  }
+
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       let rows=[];
       if(ext==='csv') rows=parseCSV(e.target.result);
       else { const wb=XLSX.read(e.target.result,{type:'binary'}); const ws=wb.Sheets[wb.SheetNames[0]]; rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
-      document.getElementById(`prog-${itemId}`).style.width='60%';
+      progEl.style.width='60%';
       const result=mergeData(rows, file.name);
-      document.getElementById(`prog-${itemId}`).style.width='100%';
-      document.getElementById(`stat-${itemId}`).textContent=`✓ 新增${result.added}筆，更新${result.updated}筆`;
-      document.getElementById(`stat-${itemId}`).style.color='var(--green)';
+      progEl.style.width='100%';
+      statEl.textContent=`✓ 新增${result.added}筆，更新${result.updated}筆`;
+      statEl.style.color='var(--green)';
       rebuildStats(); refreshAllViews();
       logMerge(`[${file.name}] 新增 ${result.added} 筆，覆蓋更新 ${result.updated} 筆`);
     }catch(err){
-      document.getElementById(`stat-${itemId}`).textContent='✗ 解析失敗：'+err.message;
-      document.getElementById(`stat-${itemId}`).style.color='var(--red)';
+      statEl.textContent='✗ 解析失敗：'+err.message;
+      statEl.style.color='var(--red)';
     }
   };
   if(ext==='csv') reader.readAsText(file,'UTF-8'); else reader.readAsBinaryString(file);
@@ -1074,6 +1188,46 @@ function processFile(file){
 function parseCSV(text){ return text.split('\n').map(l=>l.split(',').map(c=>c.trim().replace(/^"|"$/g,''))); }
 
 function mergeData(rows, fname){
+  // 新格式偵測：英文版「年度休假天數明細表」— 第4行(index 3)為「日/時/日/時...」交替的子表頭
+  const row4 = (rows[3]||[]).map(c=>String(c||'').trim());
+  const isLeaveDetailExport = rows.length > 5
+    && String(rows[0][0]||'').trim()==='部門名稱'
+    && String(rows[0][1]||'').trim()==='員工編號'
+    && row4.filter(c=>c==='日'||c==='時').length >= 4;
+
+  if(isLeaveDetailExport){
+    let added=0, updated=0;
+    for(let i=4;i<rows.length;i++){
+      const row=rows[i]; if(!row) continue;
+      const empIdRaw=String(row[1]||'').trim();
+      const name=String(row[2]||'').trim();
+      if(!empIdRaw||!name) continue;
+      // 過濾備註說明行（emp_id應為員編格式，不含中文標點/過長文字）
+      if(empIdRaw.length>15 || /[。：:，,]/.test(empIdRaw)) continue;
+      const dept_name=String(row[0]||'').trim();
+      const fn=v=>{ const n=parseFloat(v); return isNaN(n)?0:n; };
+      // col索引(0-based): 4,5=保留假(2025)可休 日,時；6,7=年休假(2026)可休 日,時
+      const ext_hours = fn(row[4])*8 + fn(row[5]);     // 保留假＝遞延假
+      const annual_hours = fn(row[6])*8 + fn(row[7]);  // 年休假＝當年度假
+      // 10,11=保留假已休 日,時；12,13=年休假已休 日,時
+      const used_ext = fn(row[10])*8 + fn(row[11]);
+      const used_ann = fn(row[12])*8 + fn(row[13]);
+      const used = used_ext + used_ann;
+      const total = ext_hours + annual_hours;
+      if(total<=0) continue;
+      // 24,25=2026剩餘合計 日,時（若提供則優先採用，否則用total-used計算）
+      const remGivenD=row[24], remGivenH=row[25];
+      const remaining = (remGivenD!=null||remGivenH!=null) ? (fn(remGivenD)*8+fn(remGivenH)) : (total-used);
+      const usedPct=used/total*100, gap=TIME_PCT-usedPct;
+      const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
+      const newRec={dept_id:dept_name,dept_name,emp_id:empIdRaw,name,join_date:String(row[3]||'').trim(),seniority:'-',ext_hours:Math.round(ext_hours*10)/10,annual_hours:Math.round(annual_hours*10)/10,used_hours:Math.round(used*10)/10,has_expiring:ext_hours>used_ext,warehouse:'運輸',total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
+      const existIdx=store.employees.findIndex(e=>e.emp_id===empIdRaw);
+      if(existIdx>=0){ store.employees[existIdx]=Object.assign({},store.employees[existIdx],newRec); updated++; }
+      else { store.employees.push(newRec); added++; }
+    }
+    return {added,updated};
+  }
+
   const isSystemExport = rows.length > 4 && String(rows[0][0]||'').trim()==='部門名稱' && String(rows[0][1]||'').trim()==='員工編號';
   if(isSystemExport){
     let added=0, updated=0;
@@ -1169,6 +1323,7 @@ function rebuildStats(){
 
 function refreshAllViews(){
   initKPI(); initPies(); initDeptBars(); initPredict(); initCounters();
+  fillSelects();
   renderRiskA(); renderRiskB(); renderMaintain();
 }
 
@@ -1190,20 +1345,20 @@ function downloadTemplate(){
 
 function exportExcelForPA(){
   const data=getFiltered('riskA');
-  if(!data.length){alert('目前沒有需關注人員！');return;}
-  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.dept_name,'風險類型':e.status==='high_risk'?'高風險':'已休0','年度可休時數':e.total_entitled,'延長假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
+  if(!data.length){alert('目前沒有高風險人員！');return;}
+  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.dept_name,'風險類型':'高風險','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'NeedsAttention');
-  XLSX.writeFile(wb,`年假需關注名單_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.utils.book_append_sheet(wb,ws,'狀況A-高風險');
+  XLSX.writeFile(wb,`年假高風險名單_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function exportCSV(type){
   let data;
   if(type==='riskB') data=store.employees.filter(e=>e.status==='normal');
   else data=store.employees;
-  const headers=['員編','姓名','部門','倉別','年度可休(h)','延長假(h)','已休(h)','未休(h)','已休%','落差%','狀態','遞延假'];
-  const rows=data.map(e=>[e.emp_id,e.name,e.dept_name,e.warehouse||'',e.total_entitled,e.ext_hours,e.used_hours,e.remaining,e.used_pct,e.gap_pct,e.status,e.has_expiring?'是':'否']);
+  const headers=['員編','姓名','部門','倉別','年度可休(h)','遞延假(h)','已休(h)','未休(h)','已休%','落差%','狀態','遞延假到期'];
+  const rows=data.map(e=>[e.emp_id,e.name,e.dept_name,e.warehouse||'',e.total_entitled,e.ext_hours,e.used_hours,e.remaining,e.used_pct,e.gap_pct,(e.status==='zero'?'high_risk':e.status),e.has_expiring?'是':'否']);
   const csv='\uFEFF'+[headers,...rows].map(r=>r.join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
