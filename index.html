@@ -192,8 +192,8 @@ tr:hover td{background:var(--surface2)}
     <div class="kpi">
       <div class="kpi-label">高風險人數</div>
       <div class="kpi-val red" id="k-risk">—</div>
-      <div class="kpi-sub">落差 &gt; 20%（5月門檻）</div>
-      <div class="kpi-explain">「落差」= 時間進度（41.7%）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
+      <div class="kpi-sub">落差 &gt; 20%（<span id="month-label-1">5月</span>門檻）</div>
+      <div class="kpi-explain">「落差」= 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">遞延假未消化</div>
@@ -231,7 +231,7 @@ tr:hover td{background:var(--surface2)}
   </div>
 
   <div class="card">
-    <div class="card-title">各部門已休進度 vs 時間進度（5月 41.7%）</div>
+    <div class="card-title">各部門已休進度 vs 時間進度（<span id="month-label-2">5月 41.7%</span>）</div>
     <div id="pref-wrap">
       <button class="pref-btn" onclick="togglePref()">▸ 1–12月進度參考表</button>
       <div class="pref-box" id="pref-box">
@@ -240,7 +240,7 @@ tr:hover td{background:var(--surface2)}
       </div>
     </div>
     <div style="margin-top:14px" id="dept-bars"></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px">灰色線 = 5月時間進度（41.7%）。條狀短於灰線代表進度落後，顏色越紅風險越高。</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">灰色線 = <span id="month-label-3">5月時間進度（41.7%）</span>。條狀短於灰線代表進度落後，顏色越紅風險越高。</div>
   </div>
 </div>
 
@@ -338,16 +338,16 @@ tr:hover td{background:var(--surface2)}
       <span><span class="thl-rect" style="background:#378add"></span>已休</span>
       <span><span class="thl-rect" style="background:#b5d4f4"></span>預測下半年可再休</span>
       <span><span class="thl-rect" style="background:var(--surface2);border:1px solid var(--border)"></span>預測年底仍剩</span>
-      <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（5月）</span>
+      <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（<span id="month-label-4">5月</span>）</span>
     </div>
     <div id="thermo-rows"></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px" id="predict-explain">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
   </div>
   <div class="card">
     <div class="card-title">全公司燃盡圖 — 未休時數趨勢 <span class="beta">BETA</span></div>
     <canvas id="burndown" style="width:100%;height:220px"></canvas>
     <div style="display:flex;gap:16px;font-size:11px;color:var(--text3);margin-top:8px;flex-wrap:wrap">
-      <span>─── 藍線：實際（1–5月）＋預測趨勢（6–12月）</span>
+      <span id="burndown-label-1">─── 藍線：實際（1–5月）＋預測趨勢（6–12月）</span>
       <span>- - - 綠線：理想均速消化（年底歸零）</span>
     </div>
   </div>
@@ -355,6 +355,30 @@ tr:hover td{background:var(--surface2)}
 
 <!-- 資料維護 -->
 <div id="tab-maintain" style="display:none">
+  <div class="card">
+    <div class="card-title">時間進度基準
+      <span class="sub">用於計算「落差」與所有時間進度相關指標</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div style="font-size:12px;color:var(--text2)">目前設定：第 <span id="month-display" style="font-weight:700;font-family:var(--mono)">—</span> 月（時間進度 <span id="time-pct-display" style="font-weight:700;font-family:var(--mono)">—</span>%）</div>
+      <select id="f-month-select" onchange="onMonthChange(this.value)" style="font-size:12px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);font-family:var(--font)">
+        <option value="1">1月（8.3%）</option>
+        <option value="2">2月（16.7%）</option>
+        <option value="3">3月（25.0%）</option>
+        <option value="4">4月（33.3%）</option>
+        <option value="5">5月（41.7%）</option>
+        <option value="6">6月（50.0%）</option>
+        <option value="7">7月（58.3%）</option>
+        <option value="8">8月（66.7%）</option>
+        <option value="9">9月（75.0%）</option>
+        <option value="10">10月（83.3%）</option>
+        <option value="11">11月（91.7%）</option>
+        <option value="12">12月（100.0%）</option>
+      </select>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6">預設為今天的月份。若資料截止日跟現在月份不同（例如月初還在處理上月資料），可在此手動調整，設定會保留在此瀏覽器中。調整後所有頁面的落差、KPI、圖表會立即重新計算。</div>
+  </div>
+
   <div class="card">
     <div class="card-title">上傳新資料
       <span class="sub">支援 CSV / Excel（.xlsx）/ PDF（震旦雲年度特休一覽表）</span>
@@ -652,8 +676,19 @@ const INIT_DATA = {"summary": {"total": 241, "high_risk": 47, "zero_used": 86, "
 let store = JSON.parse(JSON.stringify(INIT_DATA));
 
 const PS = 20;
-const MONTH = 5;
-const TIME_PCT = MONTH/12*100;
+function getSavedMonth(){
+  const s = localStorage.getItem('asc_progress_month');
+  if(s){ const n = parseInt(s,10); if(n>=1 && n<=12) return n; }
+  return new Date().getMonth()+1; // 瀏覽器當前月份(1-12)
+}
+let MONTH = getSavedMonth();
+let TIME_PCT = MONTH/12*100;
+function setMonth(m){
+  m = Math.max(1, Math.min(12, parseInt(m,10)||MONTH));
+  MONTH = m;
+  TIME_PCT = MONTH/12*100;
+  localStorage.setItem('asc_progress_month', String(m));
+}
 const WARN_GAP = 20;
 const COLORS = {
   WS:'#E24B4A', B3:'#378ADD', B9:'#7F77DD', EC:'#1D9E75',
@@ -669,11 +704,53 @@ const ST = {
 
 document.addEventListener('DOMContentLoaded', () => {
   backupTabs();
+  recalcAllEmployees();
+  rebuildStats();
   initKPI(); initPies(); initDeptBars(); initMonthPills();
   fillSelects();
   renderRiskA(); renderRiskB(); renderMaintain();
   initCounters();
+  initMonthUI();
 });
+
+// 依目前 MONTH/TIME_PCT 重新計算每位員工的落差、預測等指標
+function recalcAllEmployees(){
+  store.employees.forEach(e=>{
+    const total = e.total_entitled, used = e.used_hours;
+    if(total<=0) return;
+    const usedPct = used/total*100;
+    const gap = TIME_PCT - usedPct;
+    e.used_pct = Math.round(usedPct*10)/10;
+    e.gap_pct = Math.round(gap*10)/10;
+    e.gap_days = Math.round(Math.abs(gap)/100*total/8*10)/10;
+    e.status = used===0 ? 'zero' : (gap>WARN_GAP ? 'high_risk' : 'normal');
+    e.predicted_year_end_h = Math.max(0, Math.round((total - used/MONTH*12)*10)/10);
+  });
+}
+
+function initMonthUI(){
+  const sel = document.getElementById('f-month-select');
+  if(sel) sel.value = String(MONTH);
+  set('month-display', MONTH);
+  set('time-pct-display', TIME_PCT.toFixed(1));
+  const pctStr = TIME_PCT.toFixed(1) + '%';
+  set('month-label-1', MONTH+'月');
+  set('time-pct-label-1', pctStr);
+  set('month-label-2', MONTH+'月 '+pctStr);
+  set('month-label-3', MONTH+'月時間進度（'+pctStr+'）');
+  set('month-label-4', MONTH+'月');
+  const remainMonths = Math.max(0, 12-MONTH);
+  const nextLabel = MONTH>=12 ? '' : `${MONTH+1}–12月`;
+  set('burndown-label-1', `─── 藍線：實際（1–${MONTH}月）＋預測趨勢（${nextLabel}）`);
+}
+
+function onMonthChange(val){
+  setMonth(val);
+  recalcAllEmployees();
+  rebuildStats();
+  refreshAllViews();
+  initMonthUI();
+}
 
 function initKPI(){
   const s = store.summary;
@@ -779,7 +856,7 @@ function initDeptBars(){
       <span class="bar-label">${k}</span>
       <div class="bar-track">
         <div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${col}"></div>
-        <div class="bar-marker" style="left:41.67%"></div>
+        <div class="bar-marker" style="left:${TIME_PCT.toFixed(2)}%"></div>
       </div>
       <span class="bar-pct" style="color:${col}">${pct.toFixed(1)}%</span>
     </div>`;
@@ -788,10 +865,11 @@ function initDeptBars(){
 }
 
 function initMonthPills(){
-  const ms=[['1','8.3'],['2','16.7'],['3','25.0'],['4','33.3'],['5','41.7★'],
+  const ms=[['1','8.3'],['2','16.7'],['3','25.0'],['4','33.3'],['5','41.7'],
             ['6','50.0'],['7','58.3'],['8','66.7'],['9','75.0'],['10','83.3'],['11','91.7'],['12','100.0']];
+  const curIdx = MONTH-1;
   document.getElementById('month-pills').innerHTML=ms.map(([m,p],i)=>
-    `<span class="mpill ${i===4?'cur':i<4?'past':'fut'}">${m}月 ${p}%</span>`
+    `<span class="mpill ${i===curIdx?'cur':i<curIdx?'past':'fut'}">${m}月 ${p}%${i===curIdx?'★':''}</span>`
   ).join('');
 }
 function togglePref(){
@@ -958,7 +1036,8 @@ function initPredict(){
   keys.forEach(k=>{
     const s=ws[k]; if(!s.total_h) return;
     const usedPct=s.used_h/s.total_h*100;
-    const addPct=Math.min((s.used_h/5*7)/s.total_h*100, 100-usedPct);
+    const remainMonths = Math.max(0, 12-MONTH);
+    const addPct=Math.min((s.used_h/MONTH*remainMonths)/s.total_h*100, 100-usedPct);
     const remPct=Math.max(0,100-usedPct-addPct);
     const remH=Math.round(s.total_h*remPct/100);
     const remD=Math.round(remH/8);
@@ -968,11 +1047,13 @@ function initPredict(){
       <div class="thermo-track">
         <div class="th-used" style="width:${Math.min(usedPct,100).toFixed(1)}%"></div>
         <div class="th-pred" style="left:${usedPct.toFixed(1)}%;width:${addPct.toFixed(1)}%"></div>
-        <div class="th-now" style="left:41.67%"></div>
+        <div class="th-now" style="left:${TIME_PCT.toFixed(2)}%"></div>
       </div>
       <span class="thermo-rval ${cls}">剩 ~${remH.toLocaleString()}h / ${remD}天</span>
     </div>`;
   });
+  const remainMonthsTxt = Math.max(0, 12-MONTH);
+  set('predict-explain', `預測邏輯：月均已休速度（已休÷${MONTH}）× 餘下${remainMonthsTxt}個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。`);
   document.getElementById('thermo-rows').innerHTML=html;
   drawBurndown(ws);
 }
@@ -1220,7 +1301,7 @@ function mergeData(rows, fname){
       const remaining = (remGivenD!=null||remGivenH!=null) ? (fn(remGivenD)*8+fn(remGivenH)) : (total-used);
       const usedPct=used/total*100, gap=TIME_PCT-usedPct;
       const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
-      const newRec={dept_id:dept_name,dept_name,emp_id:empIdRaw,name,join_date:String(row[3]||'').trim(),seniority:'-',ext_hours:Math.round(ext_hours*10)/10,annual_hours:Math.round(annual_hours*10)/10,used_hours:Math.round(used*10)/10,has_expiring:ext_hours>used_ext,warehouse:'運輸',total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
+      const newRec={dept_id:dept_name,dept_name,emp_id:empIdRaw,name,join_date:String(row[3]||'').trim(),seniority:'-',ext_hours:Math.round(ext_hours*10)/10,annual_hours:Math.round(annual_hours*10)/10,used_hours:Math.round(used*10)/10,has_expiring:ext_hours>used_ext,warehouse:'運輸',total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)/100*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
       const existIdx=store.employees.findIndex(e=>e.emp_id===empIdRaw);
       if(existIdx>=0){ store.employees[existIdx]=Object.assign({},store.employees[existIdx],newRec); updated++; }
       else { store.employees.push(newRec); added++; }
@@ -1247,7 +1328,7 @@ function mergeData(rows, fname){
       const remaining=total-used, usedPct=used/total*100, gap=TIME_PCT-usedPct;
       const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
       const wh=getWH(dept_name);
-      const newRec={dept_id:dept_name,dept_name,emp_id,name,join_date:String(row[3]||'').trim(),seniority:'-',ext_hours:Math.round(ext_hours*10)/10,annual_hours:Math.round(annual_hours*10)/10,used_hours:Math.round(used*10)/10,has_expiring:remain_ext>0,warehouse:wh,total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
+      const newRec={dept_id:dept_name,dept_name,emp_id,name,join_date:String(row[3]||'').trim(),seniority:'-',ext_hours:Math.round(ext_hours*10)/10,annual_hours:Math.round(annual_hours*10)/10,used_hours:Math.round(used*10)/10,has_expiring:remain_ext>0,warehouse:wh,total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)/100*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
       const existIdx=store.employees.findIndex(e=>e.emp_id===emp_id);
       if(existIdx>=0){ store.employees[existIdx]=Object.assign({},store.employees[existIdx],newRec); updated++; }
       else { store.employees.push(newRec); added++; }
@@ -1281,7 +1362,7 @@ function mergeData(rows, fname){
     const used=emp.used_hours, remaining=total-used, usedPct=used/total*100, gap=TIME_PCT-usedPct;
     const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
     const wh=getWH(emp.dept_id||emp.dept_name);
-    const newRec={...emp,warehouse:wh,total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
+    const newRec={...emp,warehouse:wh,total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)/100*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
     const existIdx=store.employees.findIndex(e=>e.emp_id===emp.emp_id);
     if(existIdx>=0){ store.employees[existIdx]=newRec; updated++; } else { store.employees.push(newRec); added++; }
   });
