@@ -19,51 +19,98 @@
   --font:'Noto Sans TC',sans-serif;--mono:'DM Mono',monospace;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
-.shell{max-width:1400px;margin:0 auto;padding:20px}
-.topbar{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.org{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;border-right:1px solid var(--border);padding-right:10px}
-.topbar-title{font-size:16px;font-weight:700}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.topbar-date{font-size:11px;color:var(--text3)}
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:22px;overflow-x:auto;gap:0}
-.tab{font-size:13px;padding:9px 16px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all .15s}
-.tab.active{color:var(--text);border-bottom-color:var(--text)}
-.tab:hover{color:var(--text)}
-.tab.locked::after{content:'🔒';font-size:10px;margin-left:4px;opacity:.5}
-.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
-.kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
-.kpi-val{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1}
+
+/* ===== App shell: sidebar + main ===== */
+.app-shell{display:flex;min-height:100vh}
+.sidebar{
+  width:228px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:40;
+  transition:transform .2s ease;
+}
+.sidebar-brand{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.brand-org{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:3px}
+.brand-title{display:block;font-size:15px;font-weight:700}
+.nav-list{flex:1;padding:10px;overflow-y:auto}
+.navitem{
+  display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r);cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text2);margin-bottom:2px;position:relative;transition:background .12s;
+}
+.navitem:hover{background:var(--surface2)}
+.navitem.active{background:var(--text);color:#fff}
+.navitem.active .navicon{opacity:1}
+.navicon{font-size:13px;width:16px;text-align:center;flex-shrink:0;opacity:.6}
+.navlabel{flex:1}
+.navbeta{font-size:9px;padding:1px 5px;border-radius:10px;background:#fff3cd;color:#856404;font-weight:700;flex-shrink:0}
+.navitem.active .navbeta{background:rgba(255,255,255,.25);color:#fff}
+.navitem.locked .navlabel::after{content:' 🔒';font-size:9px;opacity:.5}
+.navitem.active.locked .navlabel::after{opacity:.8}
+.sidebar-foot{padding:12px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--text3)}
+.main-area{flex:1;margin-left:228px;min-width:0}
+.main-header{
+  display:none;align-items:center;gap:12px;padding:14px 18px;background:var(--surface);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;
+}
+.page-title{font-size:15px;font-weight:700}
+.hamburger-inline{font-size:18px;background:none;border:none;cursor:pointer;color:var(--text);padding:2px 4px;line-height:1}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
+.main-body{max-width:1300px;margin:0 auto;padding:20px}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-backdrop.open{display:block}
+  .main-area{margin-left:0}
+  .main-header{display:flex}
+}
+
+/* ===== Info popover (replaces long inline explain text) ===== */
+.info-btn{
+  width:16px;height:16px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text3);font-size:10px;font-style:italic;font-family:Georgia,serif;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;
+  margin-left:4px;
+}
+.info-btn:hover{background:var(--border);color:var(--text2)}
+.info-pop{
+  display:none;position:absolute;z-index:50;background:var(--text);color:#fff;font-size:11.5px;
+  line-height:1.6;padding:10px 12px;border-radius:8px;width:240px;font-weight:400;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);top:calc(100% + 6px);left:0;
+}
+.info-pop.open{display:block}
+.info-wrap{position:relative;display:inline-flex}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:12px 14px}
+.kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center}
+.kpi-val{font-size:25px;font-weight:700;font-family:var(--mono);line-height:1}
 .kpi-val.red{color:var(--red)}.kpi-val.amber{color:var(--amber)}.kpi-val.green{color:var(--green)}
-.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5}
-.kpi-explain{font-size:11px;color:var(--text2);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);line-height:1.5}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px}
-.card-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .card-title .sub{font-weight:400;color:var(--text3);font-size:12px}
 .card-title .beta{font-size:10px;padding:2px 7px;border-radius:20px;background:#fff3cd;color:#856404;border:1px solid #ffc107;font-weight:600}
-.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.pie-wrap{display:flex;gap:14px;align-items:flex-start}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.pie-wrap{display:flex;gap:12px;align-items:flex-start}
 .pie-legend{flex:1;min-width:0}
-.pli{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;transition:background .1s}
+.pli{display:flex;align-items:center;gap:7px;padding:3px 5px;border-radius:6px;cursor:pointer;transition:background .1s}
 .pli:hover{background:var(--surface2)}
-.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.pname{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pval{font-size:12px;font-weight:700;font-family:var(--mono)}
-.ppct{font-size:11px;color:var(--text3);margin-left:2px}
-.subdept-box{margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)}
-.subdept-title{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
-.sdr{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.sdname{width:120px;flex-shrink:0;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sdtrack{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pname{font-size:11.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pval{font-size:11.5px;font-weight:700;font-family:var(--mono)}
+.ppct{font-size:10.5px;color:var(--text3);margin-left:2px}
+.subdept-box{margin-top:8px;padding:9px 11px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)}
+.subdept-title{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.sdr{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.sdname{width:120px;flex-shrink:0;font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdtrack{flex:1;height:6px;background:var(--border);border-radius:4px;overflow:hidden}
 .sdfill{height:100%;border-radius:4px}
-.sdval{font-size:11px;color:var(--text2);width:36px;text-align:right;font-family:var(--mono)}
-.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.bar-label{font-size:12px;color:var(--text2);width:72px;flex-shrink:0;font-weight:500}
-.bar-track{flex:1;height:11px;background:var(--surface2);border-radius:5px;position:relative;overflow:visible}
+.sdval{font-size:10.5px;color:var(--text2);width:36px;text-align:right;font-family:var(--mono)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.bar-label{font-size:12px;color:var(--text2);width:64px;flex-shrink:0;font-weight:500}
+.bar-track{flex:1;height:10px;background:var(--surface2);border-radius:5px;position:relative;overflow:visible}
 .bar-fill{height:100%;border-radius:5px}
-.bar-marker{position:absolute;top:-3px;width:2px;height:17px;background:var(--text3);border-radius:1px}
-.bar-pct{font-size:12px;width:44px;text-align:right;font-family:var(--mono);font-weight:600}
+.bar-marker{position:absolute;top:-3px;width:2px;height:16px;background:var(--text3);border-radius:1px}
+.bar-pct{font-size:11.5px;width:40px;text-align:right;font-family:var(--mono);font-weight:600}
 .pref-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px 0;display:inline-flex;align-items:center;gap:4px}
 .pref-btn:hover{text-decoration:underline}
 .pref-box{display:none;margin-top:10px;padding:10px 12px;background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:var(--r)}
@@ -162,23 +209,30 @@ tr:hover td{background:var(--surface2)}
 </style>
 </head>
 <body>
-<div class="shell">
+<div class="app-shell">
 
-<div class="topbar">
-  <span class="org">艾立供應鏈</span>
-  <span class="topbar-title">年假使用率監控儀表板</span>
-  <div class="topbar-right">
-    <span class="topbar-date" id="topbar-date">資料截至 2026/05/26</span>
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-org">艾立供應鏈</span>
+    <span class="brand-title">年假使用率監控</span>
   </div>
-</div>
+  <div class="nav-list">
+    <div class="navitem active" id="tab-btn-overview" onclick="showTab('overview',this)"><span class="navicon">▦</span><span class="navlabel">總覽</span></div>
+    <div class="navitem" id="tab-btn-predict" onclick="showTab('predict',this)"><span class="navicon">◔</span><span class="navlabel">年底預測</span><span class="navbeta">BETA</span></div>
+    <div class="navitem locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this,'654321')"><span class="navicon">⚠</span><span class="navlabel">狀況A-高風險</span></div>
+    <div class="navitem locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this,'654321')"><span class="navicon">✓</span><span class="navlabel">狀況B-正常</span></div>
+    <div class="navitem locked" id="tab-btn-maintain" onclick="showTabLocked('maintain',this,'123456')"><span class="navicon">⚙</span><span class="navlabel">資料維護</span></div>
+  </div>
+  <div class="sidebar-foot">資料截至 <span id="topbar-date">2026/05/26</span></div>
+</nav>
 
-<div class="tabs">
-  <div class="tab active" onclick="showTab('overview',this)">總覽</div>
-  <div class="tab locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this,'654321')">狀況A-高風險</div>
-  <div class="tab locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this,'654321')">狀況B-正常</div>
-  <div class="tab" onclick="showTab('predict',this)">年底預測 BETA</div>
-  <div class="tab locked" id="tab-btn-maintain" onclick="showTabLocked('maintain',this,'123456')">資料維護</div>
-</div>
+<main class="main-area">
+  <header class="main-header">
+    <button class="hamburger-inline" onclick="toggleSidebar()">☰</button>
+    <span class="page-title" id="page-title">總覽</span>
+  </header>
+  <div class="main-body">
 
 <!-- OVERVIEW -->
 <div id="tab-overview">
@@ -187,46 +241,63 @@ tr:hover td{background:var(--surface2)}
       <div class="kpi-label">納入計算人數</div>
       <div class="kpi-val" id="k-total">—</div>
       <div class="kpi-sub">年度可休 &gt; 0 者</div>
-      <div class="kpi-explain">本次統計範圍：有年假資格的在職員工，不含試用期未滿或假別為零者。</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">高風險人數</div>
+      <div class="kpi-label">高風險人數
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-risk')">i</button>
+          <div class="info-pop" id="info-k-risk">「落差」= 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
+        </span>
+      </div>
       <div class="kpi-val red" id="k-risk">—</div>
       <div class="kpi-sub">落差 &gt; 20%（<span id="month-label-1">5月</span>門檻）</div>
-      <div class="kpi-explain">「落差」= 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">遞延假未消化</div>
+      <div class="kpi-label">遞延假未消化
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-ext')">i</button>
+          <div class="info-pop" id="info-k-ext">「遞延假」為 2025 年遞延至 2026 年的年假，應優先消化。若年底仍未休完，依規定須換算代金，請主管優先安排。</div>
+        </span>
+      </div>
       <div class="kpi-val amber" id="k-ext">—</div>
       <div class="kpi-sub">尚未休完時數</div>
-      <div class="kpi-explain">「遞延假」為 2025 年遞延至 2026 年的年假，應優先消化。若年底仍未休完，依規定須換算代金，請主管優先安排。</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">遞延假未消化人數</div>
+      <div class="kpi-label">遞延假未消化人數
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-ext-cnt')">i</button>
+          <div class="info-pop" id="info-k-ext-cnt">這些員工持有 2025 年遞延年假，應優先協助安排消化，避免年底代金損失。</div>
+        </span>
+      </div>
       <div class="kpi-val amber" id="k-ext-cnt">—</div>
       <div class="kpi-sub">尚有遞延假未休完的員工</div>
-      <div class="kpi-explain">這些員工持有 2025 年遞延年假，應優先協助安排消化，避免年底代金損失。</div>
     </div>
   </div>
 
   <div class="g3">
     <div class="card">
-      <div class="card-title">高風險人數 <span class="sub">各部門</span></div>
+      <div class="card-title">高風險人數 <span class="sub">各部門</span>
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie1')">i</button>
+          <div class="info-pop" id="info-pie1">中央數字＝全公司高風險總人數。每倉左側數字＝該倉高風險人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+        </span>
+      </div>
       <div id="pie1-wrap" class="pie-wrap"></div>
       <div id="pie1-sub" style="display:none" class="subdept-box"></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司高風險總人數。每倉左側數字＝該倉高風險人數，右側灰色%＝該倉占全公司高風險總人數的比例。點選可展開子部門明細。</div>
     </div>
     <div class="card">
-      <div class="card-title">遞延假未消化時數 <span class="sub">各部門</span></div>
+      <div class="card-title">遞延假未消化時數 <span class="sub">各部門</span>
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie2')">i</button>
+          <div class="info-pop" id="info-pie2">中央數字＝全公司遞延假未消化總時數(h)。每倉左側數字＝該倉未消化時數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+        </span>
+      </div>
       <div id="pie2-wrap" class="pie-wrap"></div>
       <div id="pie2-sub" style="display:none" class="subdept-box"></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司遞延假未消化總時數(h)。每倉左側數字＝該倉未消化時數，右側灰色%＝該倉占全公司總時數的比例。點選可展開子部門明細。</div>
     </div>
     <div class="card">
-      <div class="card-title">遞延假未消化人數 <span class="sub">各部門，持有遞延假員工</span></div>
+      <div class="card-title">遞延假未消化人數 <span class="sub">各部門</span>
+        <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie3')">i</button>
+          <div class="info-pop" id="info-pie3">中央數字＝全公司持有遞延假未消化的總人數。每倉左側數字＝該倉人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+        </span>
+      </div>
       <div id="pie3-wrap" class="pie-wrap"></div>
       <div id="pie3-sub" style="display:none" class="subdept-box"></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">中央數字＝全公司持有遞延假未消化的總人數。每倉左側數字＝該倉人數，右側灰色%＝該倉占全公司總人數的比例。點選可展開子部門明細。</div>
     </div>
   </div>
 
@@ -244,15 +315,46 @@ tr:hover td{background:var(--surface2)}
   </div>
 </div>
 
+<!-- 年底預測 -->
+<div id="tab-predict" style="display:none">
+  <div class="kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpi"><div class="kpi-label">預估全員年底剩餘</div><div class="kpi-val red" id="p-total-h">—</div><div class="kpi-sub" id="p-total-d"></div></div>
+    <div class="kpi"><div class="kpi-label">其中遞延假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
+    <div class="kpi"><div class="kpi-label">排除人數（尚未排休）</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">已休=0，無法估算消化速度</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span>
+      <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-predict')">i</button>
+        <div class="info-pop" id="info-predict">預測邏輯：月均已休速度（已休÷<span id="predict-month-n">5</span>）× 餘下<span id="predict-rest-n">7</span>個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
+      </span>
+    </div>
+    <div class="th-legend">
+      <span><span class="thl-rect" style="background:#378add"></span>已休</span>
+      <span><span class="thl-rect" style="background:#b5d4f4"></span>預測下半年可再休</span>
+      <span><span class="thl-rect" style="background:var(--surface2);border:1px solid var(--border)"></span>預測年底仍剩</span>
+      <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（<span id="month-label-4">5月</span>）</span>
+    </div>
+    <div id="thermo-rows"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">全公司燃盡圖 — 未休時數趨勢 <span class="beta">BETA</span></div>
+    <canvas id="burndown" style="width:100%;height:220px"></canvas>
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--text3);margin-top:8px;flex-wrap:wrap">
+      <span id="burndown-label-1">─── 藍線：實際（1–5月）＋預測趨勢（6–12月）</span>
+      <span>- - - 綠線：理想均速消化（年底歸零）</span>
+    </div>
+  </div>
+</div>
+
 <!-- 狀況A-高風險（休假落差>20%，含完全尚未排休者） -->
 <div id="tab-riskA" style="display:none">
   <div class="card">
     <div class="card-title">狀況A-高風險 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
     <div class="toolbar">
-      <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="renderRiskA()">
-      <select id="f-riskA-dept" onchange="renderRiskA()"><option value="">全部部門</option></select>
-      <select id="f-riskA-wh" onchange="renderRiskA()"><option value="">全部倉別</option></select>
-      <select id="f-riskA-exp" onchange="renderRiskA()"><option value="">全部</option><option value="1">遞延假到期</option></select>
+      <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="ST.riskA.p=1;renderRiskA()">
+      <select id="f-riskA-dept" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部部門</option></select>
+      <select id="f-riskA-wh" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部倉別</option></select>
+      <select id="f-riskA-exp" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部</option><option value="1">遞延假到期</option></select>
       <div class="spacer"></div>
       <button class="btn btn-red" onclick="exportExcelForPA()">⬇ 下載發信 Excel</button>
     </div>
@@ -301,9 +403,9 @@ tr:hover td{background:var(--surface2)}
   <div class="card">
     <div class="card-title">狀況B-正常 <span class="sub">休假落差&le;20%，共 <span id="cnt-riskB">0</span> 人</span></div>
     <div class="toolbar">
-      <input placeholder="搜尋姓名 / 員編" id="f-riskB-q" oninput="renderRiskB()">
-      <select id="f-riskB-dept" onchange="renderRiskB()"><option value="">全部部門</option></select>
-      <select id="f-riskB-wh" onchange="renderRiskB()"><option value="">全部倉別</option></select>
+      <input placeholder="搜尋姓名 / 員編" id="f-riskB-q" oninput="ST.riskB.p=1;renderRiskB()">
+      <select id="f-riskB-dept" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部部門</option></select>
+      <select id="f-riskB-wh" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部倉別</option></select>
       <div class="spacer"></div>
       <button class="btn" onclick="exportCSV('riskB')">↓ 匯出 CSV</button>
     </div>
@@ -322,34 +424,6 @@ tr:hover td{background:var(--surface2)}
       </tr></thead><tbody id="tb-riskB"></tbody></table>
     </div></div>
     <div class="pg" id="pg-riskB"></div>
-  </div>
-</div>
-
-<!-- 年底預測 -->
-<div id="tab-predict" style="display:none">
-  <div class="kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-    <div class="kpi"><div class="kpi-label">預估全員年底剩餘</div><div class="kpi-val red" id="p-total-h">—</div><div class="kpi-sub" id="p-total-d"></div></div>
-    <div class="kpi"><div class="kpi-label">其中遞延假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
-    <div class="kpi"><div class="kpi-label">排除人數（尚未排休）</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">已休=0，無法估算消化速度</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span></div>
-    <div class="th-legend">
-      <span><span class="thl-rect" style="background:#378add"></span>已休</span>
-      <span><span class="thl-rect" style="background:#b5d4f4"></span>預測下半年可再休</span>
-      <span><span class="thl-rect" style="background:var(--surface2);border:1px solid var(--border)"></span>預測年底仍剩</span>
-      <span>｜<span style="display:inline-block;width:2px;height:10px;background:var(--text);vertical-align:middle;margin:0 3px"></span>現在（<span id="month-label-4">5月</span>）</span>
-    </div>
-    <div id="thermo-rows"></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px" id="predict-explain">預測邏輯：月均已休速度（已休÷5）× 餘下7個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
-  </div>
-  <div class="card">
-    <div class="card-title">全公司燃盡圖 — 未休時數趨勢 <span class="beta">BETA</span></div>
-    <canvas id="burndown" style="width:100%;height:220px"></canvas>
-    <div style="display:flex;gap:16px;font-size:11px;color:var(--text3);margin-top:8px;flex-wrap:wrap">
-      <span id="burndown-label-1">─── 藍線：實際（1–5月）＋預測趨勢（6–12月）</span>
-      <span>- - - 綠線：理想均速消化（年底歸零）</span>
-    </div>
   </div>
 </div>
 
@@ -418,9 +492,9 @@ tr:hover td{background:var(--surface2)}
   <div class="card">
     <div class="card-title">全部資料 <span class="sub">共 <span id="cnt-maintain">0</span> 人，每頁 20 筆</span></div>
     <div class="toolbar">
-      <input placeholder="搜尋姓名 / 員編" id="f-mt-q" oninput="renderMaintain()">
-      <select id="f-mt-dept" onchange="renderMaintain()"><option value="">全部部門</option></select>
-      <select id="f-mt-wh" onchange="renderMaintain()"><option value="">全部倉別</option></select>
+      <input placeholder="搜尋姓名 / 員編" id="f-mt-q" oninput="ST.maintain.p=1;renderMaintain()">
+      <select id="f-mt-dept" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部部門</option></select>
+      <select id="f-mt-wh" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部倉別</option></select>
       <div class="spacer"></div>
       <button class="btn" onclick="exportCSV('all')">↓ 匯出全部 CSV</button>
     </div>
@@ -443,8 +517,9 @@ tr:hover td{background:var(--surface2)}
     <div style="font-size:11px;color:var(--text3);margin-top:10px">遞延假已自動與當年度假合併計算。上傳新資料後頁面即時更新，重新整理頁面後恢復初始資料（SharePoint 版本可持久化）。</div>
   </div>
 </div>
-
-</div><!-- shell -->
+  </div><!-- main-body -->
+</main>
+</div><!-- app-shell -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -942,7 +1017,6 @@ function renderRiskA(){
   s.dept=(document.getElementById('f-riskA-dept')||{}).value||'';
   s.wh=(document.getElementById('f-riskA-wh')||{}).value||'';
   s.exp=(document.getElementById('f-riskA-exp')||{}).value||'';
-  s.p=1;
   const data=getFiltered('riskA');
   const page=data.slice((s.p-1)*PS, s.p*PS);
   const tbody=document.getElementById('tb-riskA'); if(!tbody) return;
@@ -972,7 +1046,6 @@ function renderRiskB(){
   s.q=(document.getElementById('f-riskB-q')||{}).value||'';
   s.dept=(document.getElementById('f-riskB-dept')||{}).value||'';
   s.wh=(document.getElementById('f-riskB-wh')||{}).value||'';
-  s.p=1;
   const data=getFiltered('riskB');
   const page=data.slice((s.p-1)*PS, s.p*PS);
   const tbody=document.getElementById('tb-riskB'); if(!tbody) return;
@@ -1053,7 +1126,8 @@ function initPredict(){
     </div>`;
   });
   const remainMonthsTxt = Math.max(0, 12-MONTH);
-  set('predict-explain', `預測邏輯：月均已休速度（已休÷${MONTH}）× 餘下${remainMonthsTxt}個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。`);
+  set('predict-month-n', MONTH);
+  set('predict-rest-n', remainMonthsTxt);
   document.getElementById('thermo-rows').innerHTML=html;
   drawBurndown(ws);
 }
@@ -1446,14 +1520,37 @@ function exportCSV(type){
   a.download=`年假_${type}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
 }
 
+const PAGE_TITLES = {overview:'總覽', predict:'年底預測 BETA', riskA:'狀況A-高風險', riskB:'狀況B-正常', maintain:'資料維護'};
+
 function showTab(name, el){
-  ['overview','riskA','riskB','predict','maintain'].forEach(t=>{
+  ['overview','predict','riskA','riskB','maintain'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===name?'block':'none';
   });
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.navitem').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
+  set('page-title', PAGE_TITLES[name] || '');
   if(name==='predict') setTimeout(()=>initPredict(),80);
+  closeSidebar();
 }
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-backdrop').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('open');
+}
+
+function toggleInfo(e, id){
+  e.stopPropagation();
+  document.querySelectorAll('.info-pop.open').forEach(p=>{ if(p.id!==id) p.classList.remove('open'); });
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.info-pop.open').forEach(p=>p.classList.remove('open'));
+});
 
 </script>
 </body>
