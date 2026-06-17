@@ -926,7 +926,7 @@ function toggleSub(subId, wk, type){
     if(e.status==='zero') dm[e.dept_name].zero++;
     if(e.has_expiring) dm[e.dept_name].ext_cnt++;
   });
-  const depts=Object.entries(dm).sort((a,b)=>b[1].risk-a[1].risk);
+  const depts=Object.entries(dm).filter(([name])=>name.trim()!=='').sort((a,b)=>b[1].risk-a[1].risk);
   let maxV=0;
   depts.forEach(([,d])=>{
     const v=type==='risk'?d.risk:type==='ext_cnt'?d.ext_cnt||0:d.eh;
@@ -978,7 +978,7 @@ function togglePref(){
 }
 
 function fillSelects(){
-  const depts=[...new Set(store.employees.map(e=>e.dept_name))].sort();
+  const depts=[...new Set(store.employees.map(e=>e.dept_name).filter(Boolean))].sort();
   const whs=[...new Set(store.employees.map(e=>e.warehouse))].sort();
   [['riskA','f-riskA-dept','f-riskA-wh'],['riskB','f-riskB-dept','f-riskB-wh'],['maintain','f-mt-dept','f-mt-wh']].forEach(([,di,wi])=>{
     const ds=document.getElementById(di); const ws2=document.getElementById(wi);
@@ -1052,7 +1052,7 @@ function renderRiskA(){
       <td><input type="checkbox"></td>
       <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
       <td style="font-weight:600; color:var(--text)">${e.name}</td>
-      <td>${e.dept_name}</td>
+      <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
       <td><span class="badge b-gray">${e.warehouse||''}</span></td>
       <td style="font-family:var(--mono)">${e.total_entitled}</td>
       <td style="font-family:var(--mono)">${e.ext_hours||0}</td>
@@ -1081,7 +1081,7 @@ function renderRiskB(){
       <td><input type="checkbox"></td>
       <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
       <td style="font-weight:600; color:var(--text)">${e.name}</td>
-      <td>${e.dept_name}</td>
+      <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
       <td><span class="badge b-gray">${e.warehouse||''}</span></td>
       <td style="font-family:var(--mono)">${e.total_entitled}</td>
       <td>${e.used_hours}</td>
@@ -1106,7 +1106,7 @@ function renderMaintain(){
     <td><input type="checkbox"></td>
     <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
     <td style="font-weight:600; color:var(--text)">${e.name}</td>
-    <td>${e.dept_name}</td>
+    <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
     <td><span class="badge b-gray">${e.warehouse||''}</span></td>
     <td style="font-family:var(--mono)">${e.annual_hours}</td>
     <td style="font-family:var(--mono)">${e.ext_hours}</td>
@@ -1372,13 +1372,17 @@ function mergeData(rows, fname){
 
   if(isLeaveDetailExport){
     let added=0, updated=0;
+    let lastDeptName='';
     for(let i=4;i<rows.length;i++){
       const row=rows[i]; if(!row) continue;
       const empIdRaw=String(row[1]||'').trim();
       const name=String(row[2]||'').trim();
       if(!empIdRaw||!name) continue;
       if(empIdRaw.length>15 || /[。：:，,]/.test(empIdRaw)) continue;
-      const dept_name=String(row[0]||'').trim();
+      // 繼承上一列的部門名稱（Excel 合併儲存格只有第一列有值）
+      const rawDept=String(row[0]||'').trim();
+      if(rawDept) lastDeptName=rawDept;
+      const dept_name=lastDeptName;
       const fn=v=>{ const n=parseFloat(v); return isNaN(n)?0:n; };
       const ext_hours = fn(row[4])*8 + fn(row[5]);
       const annual_hours = fn(row[6])*8 + fn(row[7]);
@@ -1402,11 +1406,15 @@ function mergeData(rows, fname){
   const isSystemExport = rows.length > 4 && String(rows[0][0]||'').trim()==='部門名稱' && String(rows[0][1]||'').trim()==='員工編號';
   if(isSystemExport){
     let added=0, updated=0;
+    let lastDeptName='';
     for(let i=4;i<rows.length;i++){
       const row=rows[i]; if(!row||!row[1]||String(row[1]).trim()==='') continue;
       const empIdRaw=String(row[1]).trim();
       if(empIdRaw.length>20||empIdRaw.includes('。')) continue;
-      const dept_name=String(row[0]||'').trim();
+      // 繼承上一列的部門名稱
+      const rawDept=String(row[0]||'').trim();
+      if(rawDept) lastDeptName=rawDept;
+      const dept_name=lastDeptName;
       const emp_id=empIdRaw;
       const name=String(row[2]||'').trim(); if(!name) continue;
       const ext_hours=(parseFloat(row[4])||0)*8+(parseFloat(row[5])||0);
