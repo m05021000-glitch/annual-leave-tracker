@@ -105,6 +105,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .info-pop.align-left{left:0;transform:none}
 .info-pop.align-left::before{left:14px;transform:none}
 .info-pop.align-right{left:auto;right:0;transform:none}
+.info-pop .ip-def{font-weight:700;color:#fff;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.14)}
+.info-pop ul{margin:0;padding:0;list-style:none}
+.info-pop li{position:relative;padding-left:13px;margin-bottom:5px;color:#d8dade}
+.info-pop li:last-child{margin-bottom:0}
+.info-pop li::before{content:'';position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:#7a8694}
 .info-pop.align-right::before{left:auto;right:14px;transform:none}
 .info-pop.open{display:block}
 .info-wrap{position:relative;display:inline-flex}
@@ -303,7 +308,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="kpi">
       <div class="kpi-label">休假落後人數
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-risk')">i</button>
-          <div class="info-pop" id="info-k-risk">「落差」= 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
+          <div class="info-pop" id="info-k-risk"><div class="ip-def">落差 = 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度</div><ul><li>落差 &gt; 20%：休假速度明顯落後</li><li>包含完全尚未排休的人</li><li>維持現況，年底恐有大量剩餘</li></ul></div>
         </span>
       </div>
       <div class="kpi-val red" id="k-risk">—<span>人</span></div>
@@ -312,7 +317,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="kpi">
       <div class="kpi-label">遞延假未消化
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-ext')">i</button>
-          <div class="info-pop" id="info-k-ext">「遞延假」為 2025 年遞延至 2026 年的年假，應優先消化。若年底仍未休完，依規定須換算代金，請主管優先安排。</div>
+          <div class="info-pop" id="info-k-ext"><div class="ip-def">遞延假 = 2025年遞延至2026年的年假</div><ul><li>應優先消化</li><li>年底未休完 → 須換算代金</li><li>請主管優先安排</li></ul></div>
         </span>
       </div>
       <div class="kpi-val amber" id="k-ext">—</div>
@@ -321,7 +326,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="kpi">
       <div class="kpi-label">遞延假未消化人數
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-ext-cnt')">i</button>
-          <div class="info-pop" id="info-k-ext-cnt">這些員工持有 2025 年遞延年假，應優先協助安排消化，避免年底代金損失。</div>
+          <div class="info-pop" id="info-k-ext-cnt"><ul><li>持有2025年遞延年假</li><li>應優先協助安排消化，避免年底代金損失</li></ul></div>
         </span>
       </div>
       <div class="kpi-val amber" id="k-ext-cnt">—</div>
@@ -333,7 +338,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card">
       <div class="card-title">休假落後人數 <span class="sub">各部門</span>
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie1')">i</button>
-          <div class="info-pop" id="info-pie1">中央數字＝全公司休假落後總人數。每倉左側數字＝該倉休假落後人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+          <div class="info-pop" id="info-pie1"><ul><li>中央數字 = 全公司休假落後總人數</li><li>每倉左側數字 = 該倉休假落後人數</li><li>右側灰色% = 占全公司比例</li><li>點選可展開子部門明細</li></ul></div>
         </span>
       </div>
       <div id="pie1-wrap" class="pie-wrap"></div>
@@ -342,7 +347,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card">
       <div class="card-title">遞延假未消化時數 <span class="sub">各部門</span>
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie2')">i</button>
-          <div class="info-pop" id="info-pie2">中央數字＝全公司遞延假未消化總時數(h)。每倉左側數字＝該倉未消化時數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+          <div class="info-pop" id="info-pie2"><ul><li>中央數字 = 全公司遞延假未消化總時數(h)</li><li>每倉左側數字 = 該倉未消化時數</li><li>右側灰色% = 占全公司比例</li><li>點選可展開子部門明細</li></ul></div>
         </span>
       </div>
       <div id="pie2-wrap" class="pie-wrap"></div>
@@ -351,7 +356,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card">
       <div class="card-title">遞延假未消化人數 <span class="sub">各部門</span>
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie3')">i</button>
-          <div class="info-pop" id="info-pie3">中央數字＝全公司持有遞延假未消化的總人數。每倉左側數字＝該倉人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+          <div class="info-pop" id="info-pie3"><ul><li>中央數字 = 全公司持有遞延假未消化的總人數</li><li>每倉左側數字 = 該倉人數</li><li>右側灰色% = 占全公司比例</li><li>點選可展開子部門明細</li></ul></div>
         </span>
       </div>
       <div id="pie3-wrap" class="pie-wrap"></div>
@@ -382,7 +387,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
   <div class="card">
     <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span>
       <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-predict')">i</button>
-        <div class="info-pop" id="info-predict">預測邏輯：月均已休速度（已休÷<span id="predict-month-n">5</span>）× 餘下<span id="predict-rest-n">7</span>個月，理想線為均速消化至年底歸零。已休為0、無法估算速度者不納入。</div>
+        <div class="info-pop" id="info-predict"><div class="ip-def">預測 = 月均已休速度 × 餘下月數</div><ul><li>月均速度 = 已休 ÷ <span id="predict-month-n">5</span>（目前月份）</li><li>理想線 = 均速消化至年底歸零</li><li>已休為0、無法估算速度者不納入</li></ul></div>
       </span>
     </div>
     <div class="th-legend">
