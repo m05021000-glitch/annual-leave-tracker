@@ -84,17 +84,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 
 /* ===== Info popover ===== */
 .info-btn{
-  width:15px;height:15px;border-radius:50%;border:1px solid var(--border2);background:#fff;
-  color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;
+  width:16px;height:16px;border-radius:50%;border:1px solid var(--border2);background:#fff;
+  color:var(--text3);font-size:10px;font-weight:700;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;
   margin-left:6px;transition: all 0.15s;
 }
-.info-btn:hover{border-color:var(--text2);color:var(--text2);background:var(--surface2)}
+.info-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
 .info-pop{
-  display:none;position:absolute;z-index:50;background:rgba(33,37,41,0.95);backdrop-filter: blur(4px);color:#fff;font-size:12px;
-  line-height:1.6;padding:12px 14px;border-radius:8px;width:260px;font-weight:400;
-  box-shadow:var(--shadow-lg);top:calc(100% + 8px);left:0;
+  display:none;position:absolute;z-index:100;background:#23262b;color:#fff;font-size:12.5px;
+  line-height:1.65;padding:12px 14px;border-radius:9px;width:240px;font-weight:400;
+  letter-spacing:.01em;
+  box-shadow:0 16px 36px rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.18);
+  top:calc(100% + 10px);left:50%;transform:translateX(-50%);
 }
+.info-pop::before{
+  content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
+  border-bottom:6px solid #23262b;
+}
+.info-pop.align-left{left:0;transform:none}
+.info-pop.align-left::before{left:14px;transform:none}
+.info-pop.align-right{left:auto;right:0;transform:none}
+.info-pop.align-right::before{left:auto;right:14px;transform:none}
 .info-pop.open{display:block}
 .info-wrap{position:relative;display:inline-flex}
 
@@ -265,11 +276,14 @@ tr:hover td{background:rgba(241,243,245,0.4)}
   <div class="nav-list">
     <div class="navitem active" id="tab-btn-overview" onclick="showTab('overview',this)"><span class="navicon">▦</span><span class="navlabel">總覽</span></div>
     <div class="navitem" id="tab-btn-predict" onclick="showTab('predict',this)"><span class="navicon">◔</span><span class="navlabel">年底預測</span><span class="navbeta">BETA</span></div>
-    <div class="navitem locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this,'654321')"><span class="navicon">⚠</span><span class="navlabel">狀況A-高風險</span></div>
-    <div class="navitem locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this,'654321')"><span class="navicon">✓</span><span class="navlabel">狀況B-正常</span></div>
-    <div class="navitem locked" id="tab-btn-maintain" onclick="showTabLocked('maintain',this,'123456')"><span class="navicon">⚙</span><span class="navlabel">資料維護</span></div>
+    <div class="navitem locked" id="tab-btn-riskA" onclick="showTabLocked('riskA',this)"><span class="navicon">⚠</span><span class="navlabel">狀況A-休假落後</span></div>
+    <div class="navitem locked" id="tab-btn-riskB" onclick="showTabLocked('riskB',this)"><span class="navicon">✓</span><span class="navlabel">狀況B-正常</span></div>
+    <div class="navitem locked" id="tab-btn-maintain" onclick="showTabLocked('maintain',this)"><span class="navicon">⚙</span><span class="navlabel">資料維護</span></div>
   </div>
-  <div class="sidebar-foot">資料截至 <span id="topbar-date">2026/05/26</span></div>
+  <div class="sidebar-foot">資料截至 <span id="topbar-date">2026/05/26</span><br>
+    <span id="login-status" style="display:none;color:var(--text2)"></span>
+    <span id="logout-link" style="display:none;cursor:pointer;color:var(--blue);margin-top:4px" onclick="logout()">登出</span>
+  </div>
 </nav>
 
 <main class="main-area">
@@ -287,7 +301,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
       <div class="kpi-sub">年度可休 &gt; 0 者</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">高風險人數
+      <div class="kpi-label">休假落後人數
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-risk')">i</button>
           <div class="info-pop" id="info-k-risk">「落差」= 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度。落差超過 20% 代表休假速度明顯落後，包含完全尚未排休者，若維持現況，年底恐有大量剩餘。</div>
         </span>
@@ -317,9 +331,9 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 
   <div class="g3">
     <div class="card">
-      <div class="card-title">高風險人數 <span class="sub">各部門</span>
+      <div class="card-title">休假落後人數 <span class="sub">各部門</span>
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-pie1')">i</button>
-          <div class="info-pop" id="info-pie1">中央數字＝全公司高風險總人數。每倉左側數字＝該倉高風險人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
+          <div class="info-pop" id="info-pie1">中央數字＝全公司休假落後總人數。每倉左側數字＝該倉休假落後人數，右側灰色%＝占全公司比例。點選可展開子部門明細。</div>
         </span>
       </div>
       <div id="pie1-wrap" class="pie-wrap"></div>
@@ -391,7 +405,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 
 <div id="tab-riskA" style="display:none">
   <div class="card">
-    <div class="card-title">狀況A-高風險 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
+    <div class="card-title">狀況A-休假落後 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="ST.riskA.p=1;renderRiskA()">
       <select id="f-riskA-dept" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部部門</option></select>
@@ -492,21 +506,21 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 
   <div class="card">
     <div class="card-title">上傳新資料
-      <span class="sub">支援 CSV / Excel（.xlsx）/ PDF（震旦雲年度特休一覽表）</span>
+      <span class="sub">支援 CSV / Excel（.xlsx）</span>
       <button class="btn" style="margin-left:auto" onclick="downloadTemplate()">↓ 下載標準模板 CSV</button>
     </div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-      ・CSV / Excel：同員編自動覆蓋，新員編自動新增，其他部門資料保留<br>
+      ・CSV / Excel（一般明細）：同員編自動覆蓋，新員編自動新增，其他部門資料保留<br>
       ・年度休假天數明細表（英文部門版 .xlsx）：視為「運輸」倉別人員，同員編自動覆蓋、新增<br>
-      ・PDF（震旦雲匯出）：<b style="color:var(--red)">會整份覆蓋目前所有員工資料</b>，上傳前會先跳出確認視窗
+      ・震旦雲「年度特休一覽表」.xlsx：<b style="color:var(--red)">會整份覆蓋目前所有員工資料</b>，上傳前會先跳出確認視窗
     </div>
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
       ondragover="event.preventDefault();this.classList.add('drag')"
       ondragleave="this.classList.remove('drag')"
       ondrop="handleDrop(event)">
-      <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.pdf" multiple onchange="handleFiles(this.files)">
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" multiple onchange="handleFiles(this.files)">
       <span class="upload-label">點此選擇檔案，或拖曳至此</span>
-      <span class="upload-sub">支援同時上傳多個檔案（CSV / Excel / PDF）</span>
+      <span class="upload-sub">支援同時上傳多個檔案（CSV / Excel）</span>
     </div>
     <div class="upload-list" id="upload-list"></div>
     <div class="merge-log" id="merge-log" style="display:none"></div>
@@ -555,12 +569,12 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 </div>
   </div></main>
 </div><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ===== 密碼鎖 =====
-const LOCK_PASS = { riskA:'654321', riskB:'654321', maintain:'123456' };
+// ===== 登入鎖（Supabase Auth，取代原密碼鎖）=====
+// 三個分頁共用同一次登入狀態：登入一次，狀況A／狀況B／資料維護同時解鎖
+let session = null;
 const unlockedTabs = {};
 
 const _tabBackup = {};
@@ -571,40 +585,91 @@ function backupTabs() {
   });
 }
 
-function showTabLocked(name, el, pass) {
+async function initAuthState() {
+  const { data } = await sb.auth.getSession();
+  session = data.session;
+  applyAuthUI();
+  if (session) { await loadPrivateEmployees(); }
+  sb.auth.onAuthStateChange((event, sess) => {
+    session = sess;
+    if (event === 'SIGNED_OUT') {
+      ['riskA','riskB','maintain'].forEach(name => {
+        unlockedTabs[name] = false;
+        const btn = document.getElementById('tab-btn-' + name);
+        if (btn) btn.classList.add('locked');
+      });
+    }
+    applyAuthUI();
+  });
+}
+
+function applyAuthUI() {
+  const logoutEl = document.getElementById('logout-link');
+  const statusEl = document.getElementById('login-status');
+  if (session) {
+    ['riskA','riskB','maintain'].forEach(name => {
+      unlockedTabs[name] = true;
+      const btn = document.getElementById('tab-btn-' + name);
+      if (btn) btn.classList.remove('locked');
+    });
+    if (logoutEl) logoutEl.style.display = 'block';
+    if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = session.user.email; }
+  } else {
+    if (logoutEl) logoutEl.style.display = 'none';
+    if (statusEl) statusEl.style.display = 'none';
+  }
+}
+
+function showTabLocked(name, el) {
   if (unlockedTabs[name]) { showTab(name, el); return; }
   showTab(name, el);
   const container = document.getElementById('tab-' + name);
   container.innerHTML = `
     <div class="lock-overlay">
       <div class="lock-icon">🔒</div>
-      <p>此頁面僅供 HR 使用，請輸入密碼</p>
-      <div class="pw-row">
-        <input type="password" id="pw-${name}" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')tryUnlock('${name}','${pass}')">
-        <button class="unlock-btn" onclick="tryUnlock('${name}','${pass}')">確認</button>
+      <p>此頁面僅供 HR 使用，請登入</p>
+      <div class="pw-row" style="flex-direction:column;gap:10px;width:240px">
+        <input type="email" id="login-email-${name}" placeholder="HR Email" style="width:100%;font-size:14px;padding:10px 14px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--font)">
+        <input type="password" id="login-pw-${name}" placeholder="密碼" onkeydown="if(event.key==='Enter')tryLogin('${name}')" style="width:100%;font-size:14px;padding:10px 14px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--font);letter-spacing:normal">
+        <button class="unlock-btn" style="width:100%" onclick="tryLogin('${name}')">登入</button>
       </div>
-      <div class="pw-err" id="pw-err-${name}">密碼錯誤，請再試一次</div>
+      <div class="pw-err" id="pw-err-${name}">帳號或密碼錯誤</div>
     </div>`;
-  setTimeout(() => { const inp = document.getElementById('pw-' + name); if(inp) inp.focus(); }, 80);
+  setTimeout(() => { const inp = document.getElementById('login-email-' + name); if(inp) inp.focus(); }, 80);
 }
 
-function tryUnlock(name, pass) {
-  const inp = document.getElementById('pw-' + name);
-  if (!inp) return;
-  if (inp.value === pass) {
-    unlockedTabs[name] = true;
-    const container = document.getElementById('tab-' + name);
-    container.innerHTML = _tabBackup[name] || '';
-    if (name === 'riskA') { fillSelects(); renderRiskA(); }
-    if (name === 'riskB') { fillSelects(); renderRiskB(); }
-    if (name === 'maintain') { fillSelects(); renderMaintain(); initMgrTable(); }
-    const btn = document.getElementById('tab-btn-' + name);
-    if (btn) btn.classList.remove('locked');
-  } else {
+async function tryLogin(name) {
+  const emailEl = document.getElementById('login-email-' + name);
+  const pwEl = document.getElementById('login-pw-' + name);
+  if (!emailEl || !pwEl) return;
+  const email = emailEl.value.trim();
+  const password = pwEl.value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
     const err = document.getElementById('pw-err-' + name);
     if (err) { err.style.display = 'block'; setTimeout(() => err.style.display = 'none', 2500); }
-    inp.value = '';
+    pwEl.value = '';
+    return;
   }
+  session = data.session;
+  applyAuthUI();
+  await loadPrivateEmployees();
+  const container = document.getElementById('tab-' + name);
+  container.innerHTML = _tabBackup[name] || '';
+  if (name === 'riskA') { fillSelects(); renderRiskA(); }
+  if (name === 'riskB') { fillSelects(); renderRiskB(); }
+  if (name === 'maintain') { fillSelects(); renderMaintain(); await initMgrTable(); initMonthUI(); }
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  session = null;
+  store.employees = [];
+  await loadPublicAggregates();
+  refreshAllViews();
+  applyAuthUI();
+  const stillOnLocked = ['riskA','riskB','maintain'].some(n => document.getElementById('tab-' + n).style.display !== 'none');
+  if (stillOnLocked) showTab('overview', document.getElementById('tab-btn-overview'));
 }
 
 // ===== 主管對照表 =====
@@ -622,18 +687,21 @@ const DEFAULT_MGR = {
   MF:      { name: 'Jackie', email: '' }
 };
 
-function getMgrTable() {
-  try {
-    const s = localStorage.getItem('asc_mgr_table');
-    if (s) return JSON.parse(s);
-  } catch(e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_MGR));
+async function getMgrTableAsync() {
+  const { data, error } = await sb.from('mgr_table').select('*');
+  const tbl = {};
+  if (!error && data) {
+    data.forEach(r => { tbl[r.warehouse] = { name: r.mgr_name || '', email: r.mgr_email || '' }; });
+  }
+  // 補齊 DB 裡還沒存過的倉別，先用預設值墊著
+  Object.keys(DEFAULT_MGR).forEach(wh => { if (!tbl[wh]) tbl[wh] = JSON.parse(JSON.stringify(DEFAULT_MGR[wh])); });
+  return tbl;
 }
 
-function initMgrTable() {
+async function initMgrTable() {
   const tbody = document.getElementById('mgr-tbody');
   if (!tbody) return;
-  const tbl = getMgrTable();
+  const tbl = await getMgrTableAsync();
   tbody.innerHTML = Object.entries(tbl).map(([wh, v]) => `
     <tr>
       <td><strong>${wh}</strong></td>
@@ -642,28 +710,27 @@ function initMgrTable() {
     </tr>`).join('');
 }
 
-function saveMgrTable() {
-  const tbl = getMgrTable();
-  Object.keys(tbl).forEach(wh => {
+async function saveMgrTable() {
+  const rows = Object.keys(DEFAULT_MGR).map(wh => {
     const nameEl = document.getElementById('mgr-name-' + wh);
     const emailEl = document.getElementById('mgr-email-' + wh);
-    if (nameEl) tbl[wh].name = nameEl.value.trim();
-    if (emailEl) tbl[wh].email = emailEl.value.trim();
+    return { warehouse: wh, mgr_name: nameEl ? nameEl.value.trim() : '', mgr_email: emailEl ? emailEl.value.trim() : '' };
   });
-  localStorage.setItem('asc_mgr_table', JSON.stringify(tbl));
-  alert('✓ 主管對照表已儲存');
+  const { error } = await sb.from('mgr_table').upsert(rows, { onConflict: 'warehouse' });
+  if (error) { alert('✗ 儲存失敗：' + error.message); return; }
+  alert('✓ 主管對照表已儲存（雲端，全員同步）');
 }
 
 // ===== 發信功能 =====
-function buildMails() {
+async function buildMails() {
   const period  = document.getElementById('mail-period').value.trim() || '本次資料截止日';
   const sender  = document.getElementById('mail-sender').value.trim() || 'HR team(C&B)';
   const ccVal   = document.getElementById('mail-cc').value.trim();
-  const mgrTbl  = getMgrTable();
+  const mgrTbl  = await getMgrTableAsync();
 
   const allAtRisk = store.employees.filter(e => e.status === 'high_risk' || e.status === 'zero');
   if (!allAtRisk.length) {
-    document.getElementById('mail-section').innerHTML = '<p style="font-size:13px;color:var(--text3)">目前無高風險人員。</p>';
+    document.getElementById('mail-section').innerHTML = '<p style="font-size:13px;color:var(--text3)">目前無休假落後人員。</p>';
     return;
   }
 
@@ -718,7 +785,7 @@ ${sender}`;
     <div class="mail-card">
       <div class="mail-card-hdr">
         ✉ ${wh} 倉別
-        <span class="badge b-red">高風險 ${emps.length} 人</span>
+        <span class="badge b-red">休假落後 ${emps.length} 人</span>
         ${unusedCount ? `<span class="badge b-amber">尚未排休 ${unusedCount} 人</span>` : ''}
         ${extCount ? `<span class="badge b-purple">遞延假 ${extCount} 人</span>` : ''}
       </div>
@@ -764,34 +831,42 @@ function dlAttachment(wh, idx) {
     e.emp_id, e.name, e.dept_name, e.warehouse,
     e.total_entitled, e.annual_hours, e.ext_hours,
     e.used_hours, e.remaining, e.gap_pct + '%',
-    '高風險',
+    '休假落後',
     e.used_hours === 0 ? '尚未排休' : '',
     e.has_expiring ? '是' : '否'
   ]));
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = [8,8,18,8,12,12,12,10,10,10,10,10,10].map(w => ({wch:w}));
-  XLSX.utils.book_append_sheet(wb, ws, '狀況A-高風險');
-  XLSX.writeFile(wb, `年假高風險_${wh}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, '狀況A-休假落後');
+  XLSX.writeFile(wb, `年假休假落後_${wh}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// ===== DATA =====
-const INIT_DATA = {"summary": {"total": 241, "high_risk": 47, "zero_used": 86, "normal": 108, "ext_total_h": 7207.0, "ext_total_days": 900.9, "avg_used_pct": 24.7, "time_progress_pct": 41.7, "current_month": 5}, "warehouse_stats": {"MF": {"total": 37, "high_risk": 3, "normal": 17, "zero": 17, "total_h": 3750.5, "used_h": 708.5, "ext_h": 524.5, "predict_h": 2309.5}, "B3": {"total": 32, "high_risk": 3, "normal": 19, "zero": 10, "total_h": 4366.0, "used_h": 1060.0, "ext_h": 1010.0, "predict_h": 2420.9}, "HA": {"total": 11, "high_risk": 3, "normal": 4, "zero": 4, "total_h": 1438.5, "used_h": 174.5, "ext_h": 339.5, "predict_h": 1019.7}, "HASS": {"total": 22, "high_risk": 8, "normal": 6, "zero": 8, "total_h": 2597.0, "used_h": 338.5, "ext_h": 527.0, "predict_h": 1815.9}, "WS": {"total": 24, "high_risk": 3, "normal": 10, "zero": 11, "total_h": 4220.5, "used_h": 709.5, "ext_h": 1429.5, "predict_h": 2840.1}, "EC": {"total": 28, "high_risk": 6, "normal": 15, "zero": 7, "total_h": 3944.5, "used_h": 842.0, "ext_h": 933.5, "predict_h": 2306.5}, "DY1F": {"total": 33, "high_risk": 7, "normal": 17, "zero": 9, "total_h": 4110.0, "used_h": 1145.0, "ext_h": 841.0, "predict_h": 2276.0}, "B9": {"total": 13, "high_risk": 3, "normal": 4, "zero": 6, "total_h": 1846.0, "used_h": 202.5, "ext_h": 658.0, "predict_h": 1434.0}, "DY2F": {"total": 13, "high_risk": 3, "normal": 5, "zero": 5, "total_h": 1587.0, "used_h": 244.5, "ext_h": 445.0, "predict_h": 1012.4}, "OMEGA2": {"total": 18, "high_risk": 6, "normal": 3, "zero": 9, "total_h": 1510.0, "used_h": 149.0, "ext_h": 330.0, "predict_h": 1194.9}, "C5": {"total": 10, "high_risk": 2, "normal": 8, "zero": 0, "total_h": 830.0, "used_h": 414, "ext_h": 169.0, "predict_h": 275.9}}, "employees": [{"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0281", "name": "葉慶元", "join_date": "2014/10/13", "seniority": "11年7個月", "total_entitled": 138, "annual_hours": 138, "ext_hours": 0, "used_hours": 0, "remaining": 138, "remaining_days": 17.2, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 7.2, "predicted_year_end_h": 138, "predicted_year_end_days": 17.2, "status": "zero", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0807", "name": "王舜耕", "join_date": "2024/08/12", "seniority": "1年9個月", "total_entitled": 65, "annual_hours": 65, "ext_hours": 0, "used_hours": 40.5, "remaining": 24.5, "remaining_days": 3.1, "used_pct": 62.3, "gap_pct": -20.6, "gap_days": 1.7, "predicted_year_end_h": 0, "predicted_year_end_days": 0.0, "status": "normal", "has_expiring": false, "warehouse": "MF"}, {"dept_id": "GMO", "dept_name": "GMO", "emp_id": "0953", "name": "蔡志強", "join_date": "2019/03/05", "seniority": "7年2個月", "total_entitled": 123, "annual_hours": 120, "ext_hours": 3, "used_hours": 33, "remaining": 90, "remaining_days": 11.2, "used_pct": 26.8, "gap_pct": 14.8, "gap_days": 2.3, "predicted_year_end_h": 43.8, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "B3", "dept_name": "B3", "emp_id": "0162", "name": "蔡明志", "join_date": "2020/03/02", "seniority": "6年2個月", "total_entitled": 123, "annual_hours": 120, "ext_hours": 3, "used_hours": 33, "remaining": 90, "remaining_days": 11.2, "used_pct": 26.8, "gap_pct": 14.8, "gap_days": 2.3, "predicted_year_end_h": 43.8, "predicted_year_end_days": 5.5, "status": "normal", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "HA", "dept_name": "HA", "emp_id": "0232", "name": "張家盛", "join_date": "2025/10/07", "seniority": "0年7個月", "total_entitled": 69, "annual_hours": 69, "ext_hours": 0, "used_hours": 4, "remaining": 65, "remaining_days": 8.1, "used_pct": 5.8, "gap_pct": 35.9, "gap_days": 3.1, "predicted_year_end_h": 59.4, "predicted_year_end_days": 7.4, "status": "high_risk", "has_expiring": false, "warehouse": "HA"}, {"dept_id": "HASS", "dept_name": "HASS", "emp_id": "0057", "name": "陳文州", "join_date": "2025/03/01", "seniority": "1年2個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 0, "remaining": 56, "remaining_days": 7.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 2.9, "predicted_year_end_h": 56, "predicted_year_end_days": 7.0, "status": "zero", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0062", "name": "張峻龍", "join_date": "2025/09/15", "seniority": "0年8個月", "total_entitled": 56, "annual_hours": 56, "ext_hours": 0, "used_hours": 8.5, "remaining": 47.5, "remaining_days": 5.9, "used_pct": 15.2, "gap_pct": 26.5, "gap_days": 1.9, "predicted_year_end_h": 35.6, "predicted_year_end_days": 4.5, "status": "high_risk", "has_expiring": false, "warehouse": "HASS"}, {"dept_id": "HASS-FP", "dept_name": "HASS-成品", "emp_id": "0082", "name": "王政儀", "join_date": "2019/11/01", "seniority": "6年6個月", "total_entitled": 146, "annual_hours": 120, "ext_hours": 26, "used_hours": 6, "remaining": 140, "remaining_days": 17.5, "used_pct": 4.1, "gap_pct": 37.6, "gap_days": 6.9, "predicted_year_end_h": 131.6, "predicted_year_end_days": 16.4, "status": "high_risk", "has_expiring": true, "warehouse": "HASS"}, {"dept_id": "WS-酒倉-早", "dept_name": "WS-酒倉-早", "emp_id": "0016", "name": "蘇勇睿", "join_date": "2017/06/01", "seniority": "8年11個月", "total_entitled": 136, "annual_hours": 120, "ext_hours": 16, "used_hours": 29, "remaining": 107, "remaining_days": 13.4, "used_pct": 21.3, "gap_pct": 20.3, "gap_days": 3.5, "predicted_year_end_h": 66.4, "predicted_year_end_days": 8.3, "status": "high_risk", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0617", "name": "沈文凱", "join_date": "2022/08/01", "seniority": "3年9個月", "total_entitled": 157.5, "annual_hours": 112, "ext_hours": 45.5, "used_hours": 6.5, "remaining": 151.0, "remaining_days": 18.9, "used_pct": 4.1, "gap_pct": 37.5, "gap_days": 7.4, "predicted_year_end_h": 141.9, "predicted_year_end_days": 17.7, "status": "high_risk", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "DY1F-Customer", "dept_name": "DY1F-行政", "emp_id": "0314", "name": "林冠伶", "join_date": "2021/04/12", "seniority": "5年1個月", "total_entitled": 142.5, "annual_hours": 118, "ext_hours": 24.5, "used_hours": 11, "remaining": 131.5, "remaining_days": 16.4, "used_pct": 7.7, "gap_pct": 33.9, "gap_days": 6.0, "predicted_year_end_h": 116.1, "predicted_year_end_days": 14.5, "status": "high_risk", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "B9-經理", "dept_name": "B9-經理", "emp_id": "0123", "name": "李雅雯", "join_date": "2019/05/28", "seniority": "7年0個月", "total_entitled": 213.5, "annual_hours": 120, "ext_hours": 93.5, "used_hours": 11, "remaining": 202.5, "remaining_days": 25.3, "used_pct": 5.2, "gap_pct": 36.5, "gap_days": 9.7, "predicted_year_end_h": 187.1, "predicted_year_end_days": 23.4, "status": "high_risk", "has_expiring": true, "warehouse": "B9"}, {"dept_id": "OMEGA2-C5", "dept_name": "OMEGA2-C5", "emp_id": "0427", "name": "韓威", "join_date": "2021/10/18", "seniority": "4年7個月", "total_entitled": 114, "annual_hours": 114, "ext_hours": 0, "used_hours": 2, "remaining": 112, "remaining_days": 14.0, "used_pct": 1.8, "gap_pct": 39.9, "gap_days": 5.7, "predicted_year_end_h": 109.2, "predicted_year_end_days": 13.7, "status": "high_risk", "has_expiring": false, "warehouse": "OMEGA2"}, {"dept_id": "C5-行政", "dept_name": "C5-行政", "emp_id": "0356", "name": "王維澤", "join_date": "2021/07/12", "seniority": "4年10個月", "total_entitled": 191.5, "annual_hours": 116, "ext_hours": 75.5, "used_hours": 10, "remaining": 181.5, "remaining_days": 22.7, "used_pct": 5.2, "gap_pct": 36.4, "gap_days": 8.7, "predicted_year_end_h": 167.5, "predicted_year_end_days": 20.9, "status": "high_risk", "has_expiring": true, "warehouse": "C5"}, {"dept_id": "帳務中心", "dept_name": "帳務中心", "emp_id": "0283", "name": "陳雅嫃", "join_date": "2019/04/23", "seniority": "7年1個月", "total_entitled": 135, "annual_hours": 120, "ext_hours": 15, "used_hours": 18, "remaining": 117, "remaining_days": 14.6, "used_pct": 13.3, "gap_pct": 28.3, "gap_days": 4.8, "predicted_year_end_h": 91.8, "predicted_year_end_days": 11.5, "status": "high_risk", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "營運優化", "dept_name": "營運優化標準", "emp_id": "0730", "name": "黃弘昱", "join_date": "2023/08/01", "seniority": "2年9個月", "total_entitled": 99.5, "annual_hours": 93, "ext_hours": 6.5, "used_hours": 16, "remaining": 83.5, "remaining_days": 10.4, "used_pct": 16.1, "gap_pct": 25.6, "gap_days": 3.2, "predicted_year_end_h": 61.1, "predicted_year_end_days": 7.6, "status": "high_risk", "has_expiring": true, "warehouse": "MF"}, {"dept_id": "WS-Customer", "dept_name": "WS-行政", "emp_id": "0029", "name": "洪鶴娟", "join_date": "2019/05/20", "seniority": "7年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "WS"}, {"dept_id": "B3-Customer", "dept_name": "B3-行政", "emp_id": "0200", "name": "吳珍珍", "join_date": "2019/05/28", "seniority": "7年0個月", "total_entitled": 240, "annual_hours": 120, "ext_hours": 120, "used_hours": 0, "remaining": 240, "remaining_days": 30.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.5, "predicted_year_end_h": 240, "predicted_year_end_days": 30.0, "status": "zero", "has_expiring": true, "warehouse": "B3"}, {"dept_id": "EC-出貨-早", "dept_name": "EC-出貨-早", "emp_id": "0127", "name": "陳秀姍", "join_date": "2021/03/08", "seniority": "5年2個月", "total_entitled": 231, "annual_hours": 119, "ext_hours": 112, "used_hours": 0, "remaining": 231, "remaining_days": 28.9, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.0, "predicted_year_end_h": 231, "predicted_year_end_days": 28.9, "status": "zero", "has_expiring": true, "warehouse": "EC"}, {"dept_id": "DY1F-晚班-可樂", "dept_name": "DY1F-晚班-可樂", "emp_id": "0264", "name": "粘創勝", "join_date": "2021/01/01", "seniority": "5年4個月", "total_entitled": 232, "annual_hours": 120, "ext_hours": 112, "used_hours": 0, "remaining": 232, "remaining_days": 29.0, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 12.1, "predicted_year_end_h": 232, "predicted_year_end_days": 29.0, "status": "zero", "has_expiring": true, "warehouse": "DY1F"}, {"dept_id": "OMEGA2-進貨", "dept_name": "OMEGA2-進貨", "emp_id": "0580", "name": "黃鈺翔", "join_date": "2024/11/25", "seniority": "1年6個月", "total_entitled": 93, "annual_hours": 58, "ext_hours": 35, "used_hours": 0, "remaining": 93, "remaining_days": 11.6, "used_pct": 0.0, "gap_pct": 41.7, "gap_days": 4.8, "predicted_year_end_h": 93, "predicted_year_end_days": 11.6, "status": "zero", "has_expiring": true, "warehouse": "OMEGA2"}]};
+// ===== Supabase 連線 =====
+const SUPABASE_URL = 'https://hurxcpnawqdjnxilfkzj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_l1F01z55wt4FWQvyakmm8g_YSe9shxD';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let store = JSON.parse(JSON.stringify(INIT_DATA));
+// ===== DATA：改吃 Supabase，不再內建死資料 =====
+let store = { summary:{total:0,high_risk:0,zero_used:0,normal:0,ext_total_h:0,ext_total_cnt:0,ext_total_days:0,avg_used_pct:0,time_progress_pct:0,current_month:5}, warehouse_stats:{}, employees:[] };
 
 const PS = 20;
-function getSavedMonth(){
-  const s = localStorage.getItem('asc_progress_month');
-  if(s){ const n = parseInt(s,10); if(n>=1 && n<=12) return n; }
-  return new Date().getMonth()+1;
-}
-let MONTH = getSavedMonth();
+let MONTH = new Date().getMonth()+1;  // 開機先暫用今天月份，loadMonthFromDB() 讀到雲端值後會覆蓋並重繪
 let TIME_PCT = MONTH/12*100;
-function setMonth(m){
+
+async function loadMonthFromDB(){
+  const { data, error } = await sb.from('app_settings').select('value').eq('key','progress_month').single();
+  if (!error && data && data.value != null) {
+    const n = parseInt(data.value, 10);
+    if (n>=1 && n<=12) { MONTH = n; TIME_PCT = MONTH/12*100; }
+  }
+}
+
+async function setMonth(m){
   m = Math.max(1, Math.min(12, parseInt(m,10)||MONTH));
   MONTH = m;
   TIME_PCT = MONTH/12*100;
-  localStorage.setItem('asc_progress_month', String(m));
+  const { error } = await sb.from('app_settings').upsert({ key:'progress_month', value:m });
+  if (error) alert('月份設定儲存失敗：' + error.message);
 }
 const WARN_GAP = 20;
 const COLORS = {
@@ -806,16 +881,107 @@ const ST = {
   maintain:{p:1,sort:'dept_name',dir:1,q:'',dept:'',wh:''},
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   backupTabs();
-  recalcAllEmployees();
-  rebuildStats();
+  await loadMonthFromDB();
+  await initAuthState();           // 若已有登入session，內部會自動 loadPrivateEmployees()
+  if (!session) {
+    await loadPublicAggregates();  // 未登入：總覽/年底預測吃公開彙總視圖
+  }
   initKPI(); initPies(); initDeptBars(); initMonthPills();
   fillSelects();
   renderRiskA(); renderRiskB(); renderMaintain();
   initCounters();
   initMonthUI();
 });
+
+function rowToEmployee(r){
+  return {
+    dept_id: r.dept_id||'', dept_name: r.dept_name||'', emp_id: r.emp_id, name: r.name,
+    join_date: r.join_date||'', seniority: r.seniority||'-',
+    total_entitled: Number(r.total_entitled)||0, annual_hours: Number(r.annual_hours)||0,
+    ext_hours: Number(r.ext_hours)||0, used_hours: Number(r.used_hours)||0,
+    remaining: Number(r.remaining)||0, used_pct: Number(r.used_pct)||0,
+    gap_pct: Number(r.gap_pct)||0, gap_days: Number(r.gap_days)||0,
+    predicted_year_end_h: Number(r.predicted_year_end_h)||0,
+    status: r.status||'normal', has_expiring: !!r.has_expiring, warehouse: r.warehouse||'MF'
+  };
+}
+
+function employeeToRow(e){
+  return {
+    emp_id: e.emp_id, name: e.name, dept_id: e.dept_id||'', dept_name: e.dept_name||'',
+    warehouse: e.warehouse||'MF', annual_hours: e.annual_hours||0, ext_hours: e.ext_hours||0,
+    total_entitled: e.total_entitled||0, used_hours: e.used_hours||0, remaining: e.remaining||0,
+    used_pct: e.used_pct||0, gap_pct: e.gap_pct||0, gap_days: e.gap_days||0,
+    predicted_year_end_h: e.predicted_year_end_h||0, status: e.status||'normal',
+    has_expiring: !!e.has_expiring, join_date: e.join_date||'', seniority: e.seniority||'-',
+    updated_by: session?.user?.email || null
+  };
+}
+
+async function loadPrivateEmployees(){
+  const { data, error } = await sb.from('employees').select('*');
+  if (error) { alert('讀取員工資料失敗：' + error.message); return; }
+  store.employees = (data||[]).map(rowToEmployee);
+  recalcAllEmployees();
+  rebuildStats();
+}
+
+async function loadPublicAggregates(){
+  const [{ data: sRows, error: e1 }, { data: whRows, error: e2 }] = await Promise.all([
+    sb.from('v_summary').select('*'),
+    sb.from('v_warehouse_stats').select('*')
+  ]);
+  if (e1 || e2) { console.error('讀取公開彙總失敗', e1||e2); return; }
+  const s = (sRows && sRows[0]) || {};
+  store.summary = {
+    total: s.total||0, high_risk: s.high_risk||0, zero_used: s.zero_used||0, normal: s.normal||0,
+    ext_total_h: Number(s.ext_total_h)||0, ext_total_cnt: s.ext_total_cnt||0, ext_total_days: 0,
+    avg_used_pct: Number(s.avg_used_pct)||0, time_progress_pct: TIME_PCT, current_month: MONTH
+  };
+  const ws = {};
+  (whRows||[]).forEach(r=>{
+    ws[r.warehouse] = {
+      total: r.total||0, high_risk: r.high_risk||0, normal: r.normal||0, zero: r.zero||0,
+      total_h: Number(r.total_h)||0, used_h: Number(r.used_h)||0, ext_h: Number(r.ext_h)||0,
+      predict_h: Number(r.predict_h)||0, ext_cnt: r.ext_cnt||0
+    };
+  });
+  store.warehouse_stats = ws;
+}
+
+async function overwriteEmployeesInDB(newEmployees, prevEmployees){
+  const newIds = new Set(newEmployees.map(e=>e.emp_id));
+  const removedIds = prevEmployees.filter(e=>!newIds.has(e.emp_id)).map(e=>e.emp_id);
+  const rows = newEmployees.map(employeeToRow);
+  for (let i=0;i<rows.length;i+=500){
+    const { error } = await sb.from('employees').upsert(rows.slice(i,i+500), { onConflict:'emp_id' });
+    if (error) throw error;
+  }
+  for (let i=0;i<removedIds.length;i+=500){
+    const { error } = await sb.from('employees').delete().in('emp_id', removedIds.slice(i,i+500));
+    if (error) throw error;
+  }
+}
+
+async function upsertEmployeesInDB(touchedEmployees){
+  const rows = touchedEmployees.map(employeeToRow);
+  for (let i=0;i<rows.length;i+=500){
+    const { error } = await sb.from('employees').upsert(rows.slice(i,i+500), { onConflict:'emp_id' });
+    if (error) throw error;
+  }
+}
+
+async function logUploadHistory(fileName, actionType, before, after, snapshotEmployees){
+  const { error } = await sb.from('upload_history').insert({
+    uploaded_by: session?.user?.email || null,
+    file_name: fileName, action_type: actionType,
+    row_count_before: before, row_count_after: after,
+    snapshot: snapshotEmployees
+  });
+  if (error) console.error('上傳歷史記錄失敗', error);
+}
 
 function recalcAllEmployees(){
   store.employees.forEach(e=>{
@@ -847,8 +1013,8 @@ function initMonthUI(){
   set('burndown-label-1', `─── 藍線：實際（1–${MONTH}月）＋預測趨勢（${nextLabel}）`);
 }
 
-function onMonthChange(val){
-  setMonth(val);
+async function onMonthChange(val){
+  await setMonth(val);
   recalcAllEmployees();
   rebuildStats();
   refreshAllViews();
@@ -859,9 +1025,8 @@ function initKPI(){
   const s = store.summary;
   document.getElementById('k-total').innerHTML = `${s.total}<span style="font-size:14px;color:var(--text3);font-weight:500"> 人</span>`;
   document.getElementById('k-risk').innerHTML = `${s.high_risk}<span style="font-size:14px;color:var(--red);font-weight:500"> 人</span>`;
-  set('k-ext', s.ext_total_h.toLocaleString() + ' h');
-  const extCnt = store.employees.filter(e => e.has_expiring).length;
-  set('k-ext-cnt', extCnt + ' 人');
+  set('k-ext', (s.ext_total_h||0).toLocaleString() + ' h');
+  set('k-ext-cnt', (s.ext_total_cnt||0) + ' 人');
 }
 
 function initCounters(){
@@ -878,9 +1043,7 @@ function initPies(){
   const keys = Object.keys(ws).sort();
   buildPie('pie1-wrap','pie1-sub', keys, k=>ws[k].high_risk, k=>ws[k].high_risk+'人', 'risk');
   buildPie('pie2-wrap','pie2-sub', keys, k=>ws[k].ext_h, k=>ws[k].ext_h.toLocaleString()+'h', 'ext');
-  const extCntByWh = {};
-  store.employees.forEach(e => { if(e.has_expiring) extCntByWh[e.warehouse] = (extCntByWh[e.warehouse]||0) + 1; });
-  buildPie('pie3-wrap','pie3-sub', keys, k=>extCntByWh[k]||0, k=>(extCntByWh[k]||0)+'人', 'ext_cnt');
+  buildPie('pie3-wrap','pie3-sub', keys, k=>ws[k].ext_cnt||0, k=>(ws[k].ext_cnt||0)+'人', 'ext_cnt');
 }
 
 function buildPie(wrapId, subId, keys, valFn, lblFn, type){
@@ -916,6 +1079,11 @@ function toggleSub(subId, wk, type){
   const box=document.getElementById(subId);
   if(activeSub[subId]===wk && box.style.display!=='none'){ box.style.display='none'; activeSub[subId]=''; return; }
   activeSub[subId]=wk;
+  if(!session){
+    box.innerHTML = `<div class="subdept-title">${wk} 子部門明細</div><div style="font-size:12px;color:var(--text3);padding:8px 0">登入後可查看部門明細</div>`;
+    box.style.display='block';
+    return;
+  }
   const emps=store.employees.filter(e=>e.warehouse===wk);
   const dm={};
   emps.forEach(e=>{
@@ -1214,95 +1382,69 @@ function handleFiles(files){
   Array.from(files).forEach(f=>processFile(f));
 }
 
-// ---- PDF 解析 ----
-const PDF_COLX = [483, 538, 598, 660, 720];
-function pdfBucket(x){
-  let best=null, bd=999;
-  PDF_COLX.forEach((cx,i)=>{ const d=Math.abs(x-cx); if(d<bd){bd=d;best=i;} });
-  return bd<15 ? best : null;
+// ---- 震旦雲「年度特休一覽表」Excel 解析（取代舊版 PDF 座標解析）----
+// 固定欄位結構：A=部門編號 C=部門 D=員工編號 F=姓名 J=延長(h) K=年度可休(h) L=合計(h) M=已休(h) N=未休(h) P=備註
+function isAnnualLeaveSheet(rows){
+  if(rows.length < 9) return false;
+  const r2 = String(rows[1]?.[0] || '').trim();
+  const r6 = (rows[5]||[]).map(c=>String(c||'').trim());
+  return r2.includes('年度特休一覽表') && r6.includes('部門編號') && r6.includes('員工編號');
 }
-function pdfFnum(v){
-  if(v==null) return 0;
-  const n=parseFloat(String(v).replace(/,/g,''));
-  return isNaN(n)?0:n;
+function xlsFnum(v){
+  if(v==null||v==='') return 0;
+  const n = parseFloat(String(v).replace(/,/g,''));
+  return isNaN(n) ? 0 : n;
 }
-async function parsePDFFile(arrayBuffer){
-  const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
-  const empRows=[];
-  let lastDeptId='';
-  for(let p=1;p<=pdf.numPages;p++){
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    const byRow={};
-    content.items.forEach(it=>{
-      if(!it.str || !it.str.trim()) return;
-      const x=it.transform[4], y=Math.round(it.transform[5]*2)/2;
-      if(!byRow[y]) byRow[y]=[];
-      byRow[y].push({x, text:it.str.trim()});
-    });
-    const ys=Object.keys(byRow).map(Number).sort((a,b)=>b-a);
-    ys.forEach(y=>{
-      const ws=byRow[y].slice().sort((a,b)=>a.x-b.x);
-      let dept_id='', dept_name='', emp_id='', name='';
-      const nums=[null,null,null,null,null];
-      ws.forEach(w=>{
-        const x=w.x, t=w.text;
-        if(x>=15&&x<95) dept_id+=t;
-        else if(x>=95&&x<165) dept_name+=t;
-        else if(x>=165&&x<218) emp_id+=t;
-        else if(x>=222&&x<280) name+=t;
-        else if(x>=460&&x<760){ const b=pdfBucket(x); if(b!==null) nums[b]=t; }
-      });
-      if(dept_id) lastDeptId=dept_id;
-      if(emp_id && name){
-        empRows.push([lastDeptId, dept_name, emp_id, name, nums]);
-      }
-    });
-  }
-  if(!empRows.length) throw new Error('找不到任何員工資料列，請確認是否為「年度特休一覽表」PDF');
-
+function parseAnnualLeaveSheet(rows){
   const groups = {};
   const order = [];
-  empRows.forEach(r=>{
-    const key = r[2]+'|'+r[3];
+  for(let i=7;i<rows.length;i++){ // data starts row 8 (0-indexed 7)
+    const row = rows[i]; if(!row) continue;
+    const dept_id = String(row[0]||'').trim();
+    const dept_name = String(row[2]||'').trim();
+    const emp_id = String(row[3]||'').trim();
+    const name = String(row[5]||'').trim();
+    if(!emp_id || !name) continue;
+    if(name.includes('勿刪')) continue; // 過濾測試用帳號
+    const ext = xlsFnum(row[9]);    // J 延長
+    const annual = xlsFnum(row[10]); // K 年度可休
+    const used = xlsFnum(row[12]);   // M 已休
+    const key = emp_id+'|'+name;
     if(!groups[key]){ groups[key]=[]; order.push(key); }
-    groups[key].push(r);
-  });
-
+    groups[key].push({dept_id, dept_name, ext, annual, used});
+  }
   const employees=[];
   order.forEach(key=>{
     const grp = groups[key];
     const [emp_id, name] = key.split('|');
-    const dept_id = grp[0][0], dept_name = grp[0][1];
-    let base = grp[0], bestB = -Infinity;
-    grp.forEach(g=>{ const b=pdfFnum(g[4][1]); if(b>bestB){ bestB=b; base=g; } });
-    const annual = pdfFnum(base[4][1]);
-    const used   = pdfFnum(base[4][3]);
-    const remA   = pdfFnum(base[4][4]);
-    let ext=0, remE=0;
-    grp.forEach(g=>{ if(g!==base){ ext=pdfFnum(g[4][0]); remE=pdfFnum(g[4][2]); } });
+    const dept_id = grp[0].dept_id, dept_name = grp[0].dept_name;
+    let annual=0, ext=0, used=0;
+    grp.forEach(g=>{ annual+=g.annual; ext+=g.ext; used+=g.used; });
     const total = Math.round((annual+ext)*10)/10;
-    const remaining = Math.round((remA+remE)*10)/10;
-    const usedPct = total>0 ? used/total*100 : 0;
+    if(total<=0) return;
+    const usedR = Math.round(used*10)/10;
+    const remaining = Math.round((total-usedR)*10)/10;
+    const usedPct = total>0 ? usedR/total*100 : 0;
     const gap = TIME_PCT - usedPct;
-    const status = used===0 ? 'zero' : (gap>WARN_GAP ? 'high_risk' : 'normal');
-    const wh = getWH(dept_id);
+    const status = usedR===0 ? 'zero' : (gap>WARN_GAP ? 'high_risk' : 'normal');
+    const wh = getWH(dept_id || dept_name);
     employees.push({
       dept_id, dept_name, emp_id, name,
       join_date:'', seniority:'-',
       annual_hours: Math.round(annual*10)/10,
       ext_hours: Math.round(ext*10)/10,
       total_entitled: total,
-      used_hours: Math.round(used*10)/10,
-      remaining: remaining,
+      used_hours: usedR,
+      remaining,
       used_pct: Math.round(usedPct*10)/10,
       gap_pct: Math.round(gap*10)/10,
-      gap_days: Math.round(Math.abs(gap)*total/8*10)/10,
-      predicted_year_end_h: Math.max(0, Math.round((total - used/MONTH*12)*10)/10),
+      gap_days: Math.round(Math.abs(gap)/100*total/8*10)/10,
+      predicted_year_end_h: Math.max(0, Math.round((total - usedR/MONTH*12)*10)/10),
       predicted_year_end_days: 0,
       status, has_expiring: ext>0, warehouse: wh
     });
   });
+  if(!employees.length) throw new Error('找不到任何員工資料列，請確認是否為「年度特休一覽表」Excel');
   return employees;
 }
 
@@ -1315,45 +1457,76 @@ async function processFile(file){
   const statEl=document.getElementById(`stat-${itemId}`);
 
   if(ext==='pdf'){
-    try{
-      progEl.style.width='30%';
-      const buf = await file.arrayBuffer();
-      progEl.style.width='60%';
-      const employees = await parsePDFFile(buf);
-      progEl.style.width='90%';
-      const ok = confirm(`PDF 解析出 ${employees.length} 位員工資料。\n\n此操作將「整份覆蓋」目前的員工資料（原 ${store.employees.length} 筆），無法復原（重新整理頁面可恢復初始資料）。\n\n確定要覆蓋嗎？`);
-      if(!ok){
-        statEl.textContent='已取消';
-        progEl.style.width='100%';
-        return;
-      }
-      const oldCount = store.employees.length;
-      store.employees = employees;
-      rebuildStats(); refreshAllViews();
-      progEl.style.width='100%';
-      statEl.textContent=`✓ 整份覆蓋，共 ${employees.length} 筆`;
-      statEl.style.color='var(--green)';
-      logMerge(`[${file.name}] PDF 整份覆蓋，共 ${employees.length} 筆員工資料`);
-    }catch(err){
-      statEl.textContent='✗ 解析失敗：'+err.message;
-      statEl.style.color='var(--red)';
-    }
+    statEl.textContent='✗ 已停用 PDF 上傳，請改用震旦雲匯出的 Excel（.xlsx）版本「年度特休一覽表」';
+    statEl.style.color='var(--red)';
+    progEl.style.width='100%';
     return;
   }
 
   const reader=new FileReader();
-  reader.onload=e=>{
+  reader.onload=async e=>{
     try{
       let rows=[];
       if(ext==='csv') rows=parseCSV(e.target.result);
       else { const wb=XLSX.read(e.target.result,{type:'binary'}); const ws=wb.Sheets[wb.SheetNames[0]]; rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
       progEl.style.width='60%';
+
+      // 震旦雲「年度特休一覽表」：整份覆蓋流程
+      if(isAnnualLeaveSheet(rows)){
+        const employees = parseAnnualLeaveSheet(rows);
+        progEl.style.width='90%';
+        const ok = confirm(`解析出 ${employees.length} 位員工資料。\n\n此操作將「整份覆蓋」目前的員工資料（原 ${store.employees.length} 筆），會直接寫進雲端資料庫，無法復原。\n\n確定要覆蓋嗎？`);
+        if(!ok){
+          statEl.textContent='已取消';
+          statEl.style.color='var(--text3)';
+          progEl.style.width='100%';
+          return;
+        }
+        const oldCount = store.employees.length;
+        const prevEmployees = store.employees;
+        statEl.textContent = '寫入雲端資料庫中…';
+        try {
+          await overwriteEmployeesInDB(employees, prevEmployees);
+          await logUploadHistory(file.name, 'overwrite', oldCount, employees.length, employees);
+        } catch(dbErr){
+          store.employees = employees;
+          rebuildStats(); refreshAllViews();
+          progEl.style.width='100%';
+          statEl.textContent='✗ 畫面已更新，但雲端寫入失敗：'+dbErr.message+'（尚未真正存進雲端，請重新上傳一次）';
+          statEl.style.color='var(--red)';
+          logMerge(`[${file.name}] 年度特休一覽表 整份覆蓋 — 雲端寫入失敗：${dbErr.message}`);
+          return;
+        }
+        store.employees = employees;
+        rebuildStats(); refreshAllViews();
+        progEl.style.width='100%';
+        statEl.textContent=`✓ 整份覆蓋並已存進雲端，共 ${employees.length} 筆（原 ${oldCount} 筆）`;
+        statEl.style.color='var(--green)';
+        logMerge(`[${file.name}] 年度特休一覽表 整份覆蓋，共 ${employees.length} 筆員工資料（原 ${oldCount} 筆），已寫入雲端`);
+        return;
+      }
+
+      const beforeCount = store.employees.length;
       const result=mergeData(rows, file.name);
+      progEl.style.width='80%';
+      statEl.textContent = '寫入雲端資料庫中…';
+      try {
+        const touchedRows = store.employees.filter(e => result.touchedIds.includes(e.emp_id));
+        await upsertEmployeesInDB(touchedRows);
+        await logUploadHistory(file.name, 'merge', beforeCount, store.employees.length, store.employees);
+      } catch(dbErr){
+        progEl.style.width='100%';
+        statEl.textContent=`新增${result.added}筆，更新${result.updated}筆，但雲端寫入失敗：${dbErr.message}（請重新上傳一次）`;
+        statEl.style.color='var(--red)';
+        rebuildStats(); refreshAllViews();
+        logMerge(`[${file.name}] 新增 ${result.added} 筆，更新 ${result.updated} 筆 — 雲端寫入失敗：${dbErr.message}`);
+        return;
+      }
       progEl.style.width='100%';
-      statEl.textContent=`✓ 新增${result.added}筆，更新${result.updated}筆`;
+      statEl.textContent=`✓ 新增${result.added}筆，更新${result.updated}筆，已存進雲端`;
       statEl.style.color='var(--green)';
       rebuildStats(); refreshAllViews();
-      logMerge(`[${file.name}] 新增 ${result.added} 筆，覆蓋更新 ${result.updated} 筆`);
+      logMerge(`[${file.name}] 新增 ${result.added} 筆，覆蓋更新 ${result.updated} 筆，已寫入雲端`);
     }catch(err){
       statEl.textContent='✗ 解析失敗：'+err.message;
       statEl.style.color='var(--red)';
@@ -1372,6 +1545,7 @@ function mergeData(rows, fname){
 
   if(isLeaveDetailExport){
     let added=0, updated=0;
+    const touchedIds=[];
     let lastDeptName='';
     for(let i=4;i<rows.length;i++){
       const row=rows[i]; if(!row) continue;
@@ -1399,13 +1573,15 @@ function mergeData(rows, fname){
       const existIdx=store.employees.findIndex(e=>e.emp_id===empIdRaw);
       if(existIdx>=0){ store.employees[existIdx]=Object.assign({},store.employees[existIdx],newRec); updated++; }
       else { store.employees.push(newRec); added++; }
+      touchedIds.push(empIdRaw);
     }
-    return {added,updated};
+    return {added,updated,touchedIds};
   }
 
   const isSystemExport = rows.length > 4 && String(rows[0][0]||'').trim()==='部門名稱' && String(rows[0][1]||'').trim()==='員工編號';
   if(isSystemExport){
     let added=0, updated=0;
+    const touchedIds=[];
     let lastDeptName='';
     for(let i=4;i<rows.length;i++){
       const row=rows[i]; if(!row||!row[1]||String(row[1]).trim()==='') continue;
@@ -1430,8 +1606,9 @@ function mergeData(rows, fname){
       const existIdx=store.employees.findIndex(e=>e.emp_id===emp_id);
       if(existIdx>=0){ store.employees[existIdx]=Object.assign({},store.employees[existIdx],newRec); updated++; }
       else { store.employees.push(newRec); added++; }
+      touchedIds.push(emp_id);
     }
-    return {added,updated};
+    return {added,updated,touchedIds};
   }
   let headerIdx=-1;
   for(let i=0;i<Math.min(rows.length,10);i++){
@@ -1455,6 +1632,7 @@ function mergeData(rows, fname){
     else { empMap[key].annual_hours+=parseFloat(row[idx.annual_h]||0)||0; empMap[key].used_hours+=parseFloat(row[idx.used_h]||0)||0; }
   }
   let added=0, updated=0;
+  const touchedIds=[];
   Object.values(empMap).forEach(emp=>{
     const total=emp.annual_hours+emp.ext_hours; if(total<=0) return;
     const used=emp.used_hours, remaining=total-used, usedPct=used/total*100, gap=TIME_PCT-usedPct;
@@ -1463,8 +1641,9 @@ function mergeData(rows, fname){
     const newRec={...emp,warehouse:wh,total_entitled:Math.round(total*10)/10,remaining:Math.round(remaining*10)/10,used_pct:Math.round(usedPct*10)/10,gap_pct:Math.round(gap*10)/10,gap_days:Math.round(Math.abs(gap)/100*total/8*10)/10,predicted_year_end_h:Math.max(0,Math.round((total-used/MONTH*12)*10)/10),predicted_year_end_days:0,status};
     const existIdx=store.employees.findIndex(e=>e.emp_id===emp.emp_id);
     if(existIdx>=0){ store.employees[existIdx]=newRec; updated++; } else { store.employees.push(newRec); added++; }
+    touchedIds.push(emp.emp_id);
   });
-  return {added,updated};
+  return {added,updated,touchedIds};
 }
 
 function findCol(headers,candidates){ for(const c of candidates){ const i=headers.findIndex(h=>h.includes(c)); if(i>=0) return i; } return -1; }
@@ -1488,16 +1667,17 @@ function rebuildStats(){
   const ws={};
   store.employees.forEach(e=>{
     const w=e.warehouse||'MF';
-    if(!ws[w]) ws[w]={total:0,high_risk:0,normal:0,zero:0,total_h:0,used_h:0,ext_h:0,predict_h:0};
+    if(!ws[w]) ws[w]={total:0,high_risk:0,normal:0,zero:0,total_h:0,used_h:0,ext_h:0,predict_h:0,ext_cnt:0};
     ws[w].total++; ws[w].total_h+=e.total_entitled; ws[w].used_h+=e.used_hours;
     ws[w].ext_h+=e.ext_hours; ws[w].predict_h+=e.predicted_year_end_h;
+    if(e.has_expiring) ws[w].ext_cnt++;
     if(e.status==='high_risk') ws[w].high_risk++;
     else if(e.status==='zero') ws[w].zero++;
     else ws[w].normal++;
   });
   store.warehouse_stats=ws;
   const all=store.employees;
-  store.summary={total:all.length,high_risk:all.filter(e=>e.status==='high_risk').length,zero_used:all.filter(e=>e.status==='zero').length,normal:all.filter(e=>e.status==='normal').length,ext_total_h:Math.round(all.reduce((a,e)=>a+e.ext_hours,0)*10)/10,ext_total_days:0,avg_used_pct:Math.round(all.reduce((a,e)=>a+e.used_pct,0)/all.length*10)/10,time_progress_pct:TIME_PCT,current_month:MONTH};
+  store.summary={total:all.length,high_risk:all.filter(e=>e.status==='high_risk').length,zero_used:all.filter(e=>e.status==='zero').length,normal:all.filter(e=>e.status==='normal').length,ext_total_h:Math.round(all.reduce((a,e)=>a+e.ext_hours,0)*10)/10,ext_total_cnt:all.filter(e=>e.has_expiring).length,ext_total_days:0,avg_used_pct:all.length?Math.round(all.reduce((a,e)=>a+e.used_pct,0)/all.length*10)/10:0,time_progress_pct:TIME_PCT,current_month:MONTH};
 }
 
 function refreshAllViews(){
@@ -1524,12 +1704,12 @@ function downloadTemplate(){
 
 function exportExcelForPA(){
   const data=getFiltered('riskA');
-  if(!data.length){alert('目前沒有高風險人員！');return;}
-  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.dept_name,'風險類型':'高風險','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
+  if(!data.length){alert('目前沒有休假落後人員！');return;}
+  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.dept_name,'狀態':'休假落後','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'狀況A-高風險');
-  XLSX.writeFile(wb,`年假高風險名單_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.utils.book_append_sheet(wb,ws,'狀況A-休假落後');
+  XLSX.writeFile(wb,`年假休假落後名單_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function exportCSV(type){
@@ -1544,7 +1724,7 @@ function exportCSV(type){
   a.download=`年假_${type}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
 }
 
-const PAGE_TITLES = {overview:'總覽', predict:'年底預測 BETA', riskA:'狀況A-高風險', riskB:'狀況B-正常', maintain:'資料維護'};
+const PAGE_TITLES = {overview:'總覽', predict:'年底預測 BETA', riskA:'狀況A-休假落後', riskB:'狀況B-正常', maintain:'資料維護'};
 
 function showTab(name, el){
   ['overview','predict','riskA','riskB','maintain'].forEach(t=>{
@@ -1570,7 +1750,25 @@ function toggleInfo(e, id){
   e.stopPropagation();
   document.querySelectorAll('.info-pop.open').forEach(p=>{ if(p.id!==id) p.classList.remove('open'); });
   const el = document.getElementById(id);
-  if(el) el.classList.toggle('open');
+  if(!el) return;
+  const willOpen = !el.classList.contains('open');
+  el.classList.toggle('open');
+  if(willOpen){
+    el.classList.remove('align-left','align-right');
+    // 暫時量測寬度與位置，避免 popup 超出視窗左右邊界
+    const wrap = el.closest('.info-wrap');
+    if(wrap){
+      const wrapRect = wrap.getBoundingClientRect();
+      const popWidth = el.offsetWidth || 280;
+      const halfPop = popWidth/2;
+      const margin = 12;
+      if(wrapRect.left + wrapRect.width/2 - halfPop < margin){
+        el.classList.add('align-left');
+      } else if(wrapRect.left + wrapRect.width/2 + halfPop > window.innerWidth - margin){
+        el.classList.add('align-right');
+      }
+    }
+  }
 }
 document.addEventListener('click', ()=>{
   document.querySelectorAll('.info-pop.open').forEach(p=>p.classList.remove('open'));
