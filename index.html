@@ -91,9 +91,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 }
 .info-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
 .info-pop{
-  display:none;position:absolute;z-index:100;background:#23262b;color:#fff;font-size:12.5px;
-  line-height:1.65;padding:12px 14px;border-radius:9px;width:240px;font-weight:400;
-  letter-spacing:.01em;
+  display:none;position:absolute;z-index:100;background:#23262b;color:#fff;font-size:13px;
+  line-height:1.8;padding:14px 16px;border-radius:10px;width:min(85vw,280px);font-weight:400;
+  letter-spacing:.02em;text-align:left;
   box-shadow:0 16px 36px rgba(0,0,0,.32),0 4px 10px rgba(0,0,0,.18);
   top:calc(100% + 10px);left:50%;transform:translateX(-50%);
 }
@@ -408,8 +408,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card-title">狀況A-休假落後 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="ST.riskA.p=1;renderRiskA()">
-      <select id="f-riskA-dept" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部部門</option></select>
-      <select id="f-riskA-wh" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部倉別</option></select>
+      <select id="f-riskA-wh" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部部門</option></select>
+      <select id="f-riskA-dept" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部子部門</option></select>
       <select id="f-riskA-exp" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部</option><option value="1">遞延假到期</option></select>
       <div class="spacer"></div>
       <button class="btn btn-red" onclick="exportExcelForPA()">⬇ 下載發信 Excel</button>
@@ -419,8 +419,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
         <th class="nosort"><input type="checkbox" id="ckA" onchange="ckAll('A',this.checked)"></th>
         <th onclick="srt('riskA','emp_id')">員編</th>
         <th onclick="srt('riskA','name')">姓名</th>
-        <th onclick="srt('riskA','dept_name')">部門</th>
-        <th onclick="srt('riskA','warehouse')">倉別</th>
+        <th onclick="srt('riskA','warehouse')">部門</th>
+        <th onclick="srt('riskA','dept_name')">子部門</th>
         <th onclick="srt('riskA','total_entitled')">年度可休(h)</th>
         <th onclick="srt('riskA','ext_hours')">遞延假(h)</th>
         <th onclick="srt('riskA','used_hours')">已休(h)</th>
@@ -458,8 +458,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card-title">狀況B-正常 <span class="sub">休假落差&le;20%，共 <span id="cnt-riskB">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskB-q" oninput="ST.riskB.p=1;renderRiskB()">
-      <select id="f-riskB-dept" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部部門</option></select>
-      <select id="f-riskB-wh" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部倉別</option></select>
+      <select id="f-riskB-wh" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部部門</option></select>
+      <select id="f-riskB-dept" onchange="ST.riskB.p=1;renderRiskB()"><option value="">全部子部門</option></select>
       <div class="spacer"></div>
       <button class="btn" onclick="exportCSV('riskB')">↓ 匯出 CSV</button>
     </div>
@@ -468,8 +468,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
         <th class="nosort"><input type="checkbox" id="ckB" onchange="ckAll('B',this.checked)"></th>
         <th onclick="srt('riskB','emp_id')">員編</th>
         <th onclick="srt('riskB','name')">姓名</th>
-        <th onclick="srt('riskB','dept_name')">部門</th>
-        <th onclick="srt('riskB','warehouse')">倉別</th>
+        <th onclick="srt('riskB','warehouse')">部門</th>
+        <th onclick="srt('riskB','dept_name')">子部門</th>
         <th onclick="srt('riskB','total_entitled')">年度可休(h)</th>
         <th onclick="srt('riskB','used_hours')">已休(h)</th>
         <th onclick="srt('riskB','remaining')">未休(h)</th>
@@ -543,8 +543,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="card-title">全部資料 <span class="sub">共 <span id="cnt-maintain">0</span> 人，每頁 20 筆</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-mt-q" oninput="ST.maintain.p=1;renderMaintain()">
-      <select id="f-mt-dept" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部部門</option></select>
-      <select id="f-mt-wh" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部倉別</option></select>
+      <select id="f-mt-wh" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部部門</option></select>
+      <select id="f-mt-dept" onchange="ST.maintain.p=1;renderMaintain()"><option value="">全部子部門</option></select>
       <div class="spacer"></div>
       <button class="btn" onclick="exportCSV('all')">↓ 匯出全部 CSV</button>
     </div>
@@ -553,8 +553,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
         <th class="nosort"><input type="checkbox"></th>
         <th onclick="srt('maintain','emp_id')">員編</th>
         <th onclick="srt('maintain','name')">姓名</th>
-        <th onclick="srt('maintain','dept_name')">部門</th>
-        <th onclick="srt('maintain','warehouse')">倉別</th>
+        <th onclick="srt('maintain','warehouse')">部門</th>
+        <th onclick="srt('maintain','dept_name')">子部門</th>
         <th onclick="srt('maintain','annual_hours')">當年度(h)</th>
         <th onclick="srt('maintain','ext_hours')">遞延假(h)</th>
         <th onclick="srt('maintain','total_entitled')">合計可休(h)</th>
@@ -847,7 +847,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_l1F01z55wt4FWQvyakmm8g_YSe9shxD';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== DATA：改吃 Supabase，不再內建死資料 =====
-let store = { summary:{total:0,high_risk:0,zero_used:0,normal:0,ext_total_h:0,ext_total_cnt:0,ext_total_days:0,avg_used_pct:0,time_progress_pct:0,current_month:5}, warehouse_stats:{}, employees:[] };
+let store = { summary:{total:0,high_risk:0,zero_used:0,normal:0,ext_total_h:0,ext_total_cnt:0,ext_total_days:0,avg_used_pct:0,time_progress_pct:0,current_month:5}, warehouse_stats:{}, dept_stats:{}, employees:[] };
 
 const PS = 20;
 let MONTH = new Date().getMonth()+1;  // 開機先暫用今天月份，loadMonthFromDB() 讀到雲端值後會覆蓋並重繪
@@ -929,9 +929,10 @@ async function loadPrivateEmployees(){
 }
 
 async function loadPublicAggregates(){
-  const [{ data: sRows, error: e1 }, { data: whRows, error: e2 }] = await Promise.all([
+  const [{ data: sRows, error: e1 }, { data: whRows, error: e2 }, { data: deptRows, error: e3 }] = await Promise.all([
     sb.from('v_summary').select('*'),
-    sb.from('v_warehouse_stats').select('*')
+    sb.from('v_warehouse_stats').select('*'),
+    sb.from('v_dept_stats').select('*')
   ]);
   if (e1 || e2) { console.error('讀取公開彙總失敗', e1||e2); return; }
   const s = (sRows && sRows[0]) || {};
@@ -949,6 +950,18 @@ async function loadPublicAggregates(){
     };
   });
   store.warehouse_stats = ws;
+  const ds = {};
+  if (!e3) {
+    (deptRows||[]).forEach(r=>{
+      const wh = r.warehouse || 'MF';
+      if (!ds[wh]) ds[wh] = {};
+      ds[wh][r.dept_name || ''] = {
+        th: Number(r.total_h)||0, uh: Number(r.used_h)||0, eh: Number(r.ext_h)||0,
+        risk: r.high_risk||0, zero: r.zero||0, ext_cnt: r.ext_cnt||0
+      };
+    });
+  }
+  store.dept_stats = ds;
 }
 
 async function overwriteEmployeesInDB(newEmployees, prevEmployees){
@@ -1079,22 +1092,13 @@ function toggleSub(subId, wk, type){
   const box=document.getElementById(subId);
   if(activeSub[subId]===wk && box.style.display!=='none'){ box.style.display='none'; activeSub[subId]=''; return; }
   activeSub[subId]=wk;
-  if(!session){
-    box.innerHTML = `<div class="subdept-title">${wk} 子部門明細</div><div style="font-size:12px;color:var(--text3);padding:8px 0">登入後可查看部門明細</div>`;
+  const dm = (store.dept_stats && store.dept_stats[wk]) || {};
+  const depts=Object.entries(dm).filter(([name])=>name.trim()!=='').sort((a,b)=>b[1].risk-a[1].risk);
+  if(!depts.length){
+    box.innerHTML = `<div class="subdept-title">${wk} 子部門明細</div><div style="font-size:12px;color:var(--text3);padding:8px 0">尚無資料</div>`;
     box.style.display='block';
     return;
   }
-  const emps=store.employees.filter(e=>e.warehouse===wk);
-  const dm={};
-  emps.forEach(e=>{
-    if(!dm[e.dept_name]) dm[e.dept_name]={th:0,uh:0,eh:0,risk:0,zero:0,ext_cnt:0};
-    dm[e.dept_name].th+=e.total_entitled; dm[e.dept_name].uh+=e.used_hours;
-    dm[e.dept_name].eh+=e.ext_hours;
-    if(e.status==='high_risk') dm[e.dept_name].risk++;
-    if(e.status==='zero') dm[e.dept_name].zero++;
-    if(e.has_expiring) dm[e.dept_name].ext_cnt++;
-  });
-  const depts=Object.entries(dm).filter(([name])=>name.trim()!=='').sort((a,b)=>b[1].risk-a[1].risk);
   let maxV=0;
   depts.forEach(([,d])=>{
     const v=type==='risk'?d.risk:type==='ext_cnt'?d.ext_cnt||0:d.eh;
@@ -1220,8 +1224,8 @@ function renderRiskA(){
       <td><input type="checkbox"></td>
       <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
       <td style="font-weight:600; color:var(--text)">${e.name}</td>
-      <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
       <td><span class="badge b-gray">${e.warehouse||''}</span></td>
+      <td>${e.dept_name||'<span style="color:var(--text3);font-size:12px">—</span>'}</td>
       <td style="font-family:var(--mono)">${e.total_entitled}</td>
       <td style="font-family:var(--mono)">${e.ext_hours||0}</td>
       <td style="font-family:var(--mono)">${e.used_hours}</td>
@@ -1249,8 +1253,8 @@ function renderRiskB(){
       <td><input type="checkbox"></td>
       <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
       <td style="font-weight:600; color:var(--text)">${e.name}</td>
-      <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
       <td><span class="badge b-gray">${e.warehouse||''}</span></td>
+      <td>${e.dept_name||'<span style="color:var(--text3);font-size:12px">—</span>'}</td>
       <td style="font-family:var(--mono)">${e.total_entitled}</td>
       <td>${e.used_hours}</td>
       <td>${e.remaining}</td>
@@ -1274,8 +1278,8 @@ function renderMaintain(){
     <td><input type="checkbox"></td>
     <td style="font-family:var(--mono);color:var(--text3);font-size:12px">${e.emp_id}</td>
     <td style="font-weight:600; color:var(--text)">${e.name}</td>
-    <td>${e.dept_name||`<span style="color:var(--text3);font-style:italic;font-size:12px">${e.warehouse}</span>`}</td>
     <td><span class="badge b-gray">${e.warehouse||''}</span></td>
+    <td>${e.dept_name||'<span style="color:var(--text3);font-size:12px">—</span>'}</td>
     <td style="font-family:var(--mono)">${e.annual_hours}</td>
     <td style="font-family:var(--mono)">${e.ext_hours}</td>
     <td style="font-family:var(--mono);font-weight:600">${e.total_entitled}</td>
@@ -1665,6 +1669,7 @@ function getWH(deptId){
 
 function rebuildStats(){
   const ws={};
+  const ds={};
   store.employees.forEach(e=>{
     const w=e.warehouse||'MF';
     if(!ws[w]) ws[w]={total:0,high_risk:0,normal:0,zero:0,total_h:0,used_h:0,ext_h:0,predict_h:0,ext_cnt:0};
@@ -1674,8 +1679,16 @@ function rebuildStats(){
     if(e.status==='high_risk') ws[w].high_risk++;
     else if(e.status==='zero') ws[w].zero++;
     else ws[w].normal++;
+    if(!ds[w]) ds[w]={};
+    const dn = e.dept_name||'';
+    if(!ds[w][dn]) ds[w][dn]={th:0,uh:0,eh:0,risk:0,zero:0,ext_cnt:0};
+    ds[w][dn].th+=e.total_entitled; ds[w][dn].uh+=e.used_hours; ds[w][dn].eh+=e.ext_hours;
+    if(e.status==='high_risk') ds[w][dn].risk++;
+    if(e.status==='zero') ds[w][dn].zero++;
+    if(e.has_expiring) ds[w][dn].ext_cnt++;
   });
   store.warehouse_stats=ws;
+  store.dept_stats=ds;
   const all=store.employees;
   store.summary={total:all.length,high_risk:all.filter(e=>e.status==='high_risk').length,zero_used:all.filter(e=>e.status==='zero').length,normal:all.filter(e=>e.status==='normal').length,ext_total_h:Math.round(all.reduce((a,e)=>a+e.ext_hours,0)*10)/10,ext_total_cnt:all.filter(e=>e.has_expiring).length,ext_total_days:0,avg_used_pct:all.length?Math.round(all.reduce((a,e)=>a+e.used_pct,0)/all.length*10)/10:0,time_progress_pct:TIME_PCT,current_month:MONTH};
 }
@@ -1705,7 +1718,7 @@ function downloadTemplate(){
 function exportExcelForPA(){
   const data=getFiltered('riskA');
   if(!data.length){alert('目前沒有休假落後人員！');return;}
-  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.dept_name,'狀態':'休假落後','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
+  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.warehouse,'子部門':e.dept_name,'狀態':'休假落後','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'狀況A-休假落後');
@@ -1716,8 +1729,8 @@ function exportCSV(type){
   let data;
   if(type==='riskB') data=store.employees.filter(e=>e.status==='normal');
   else data=store.employees;
-  const headers=['員編','姓名','部門','倉別','年度可休(h)','遞延假(h)','已休(h)','未休(h)','已休%','落差%','狀態','遞延假到期'];
-  const rows=data.map(e=>[e.emp_id,e.name,e.dept_name,e.warehouse||'',e.total_entitled,e.ext_hours,e.used_hours,e.remaining,e.used_pct,e.gap_pct,(e.status==='zero'?'high_risk':e.status),e.has_expiring?'是':'否']);
+  const headers=['員編','姓名','部門','子部門','年度可休(h)','遞延假(h)','已休(h)','未休(h)','已休%','落差%','狀態','遞延假到期'];
+  const rows=data.map(e=>[e.emp_id,e.name,e.warehouse||'',e.dept_name,e.total_entitled,e.ext_hours,e.used_hours,e.remaining,e.used_pct,e.gap_pct,(e.status==='zero'?'high_risk':e.status),e.has_expiring?'是':'否']);
   const csv='\uFEFF'+[headers,...rows].map(r=>r.join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
