@@ -928,7 +928,7 @@ function employeeToRow(e){
 async function loadPrivateEmployees(){
   const { data, error } = await sb.from('employees').select('*');
   if (error) { alert('讀取員工資料失敗：' + error.message); return; }
-  store.employees = (data||[]).map(rowToEmployee);
+  store.employees = (data||[]).map(rowToEmployee).filter(e=>!isDispatchDept(e.dept_name));
   recalcAllEmployees();
   rebuildStats();
 }
@@ -1427,6 +1427,7 @@ function parseAnnualLeaveSheet(rows){
     const grp = groups[key];
     const [emp_id, name] = key.split('|');
     const dept_id = grp[0].dept_id, dept_name = grp[0].dept_name;
+    if(isDispatchDept(dept_name)) return;
     let annual=0, ext=0, used=0;
     grp.forEach(g=>{ annual+=g.annual; ext+=g.ext; used+=g.used; });
     const total = Math.round((annual+ext)*10)/10;
@@ -1566,6 +1567,7 @@ function mergeData(rows, fname){
       const rawDept=String(row[0]||'').trim();
       if(rawDept) lastDeptName=rawDept;
       const dept_name=lastDeptName;
+      if(isDispatchDept(dept_name)) continue;
       const fn=v=>{ const n=parseFloat(v); return isNaN(n)?0:n; };
       const ext_hours = fn(row[4])*8 + fn(row[5]);
       const annual_hours = fn(row[6])*8 + fn(row[7]);
@@ -1600,6 +1602,7 @@ function mergeData(rows, fname){
       const rawDept=String(row[0]||'').trim();
       if(rawDept) lastDeptName=rawDept;
       const dept_name=lastDeptName;
+      if(isDispatchDept(dept_name)) continue;
       const emp_id=empIdRaw;
       const name=String(row[2]||'').trim(); if(!name) continue;
       const ext_hours=(parseFloat(row[4])||0)*8+(parseFloat(row[5])||0);
@@ -1643,6 +1646,7 @@ function mergeData(rows, fname){
   let added=0, updated=0;
   const touchedIds=[];
   Object.values(empMap).forEach(emp=>{
+    if(isDispatchDept(emp.dept_name)) return;
     const total=emp.annual_hours+emp.ext_hours; if(total<=0) return;
     const used=emp.used_hours, remaining=total-used, usedPct=used/total*100, gap=TIME_PCT-usedPct;
     const status=used===0?'zero':gap>WARN_GAP?'high_risk':'normal';
@@ -1656,6 +1660,7 @@ function mergeData(rows, fname){
 }
 
 function findCol(headers,candidates){ for(const c of candidates){ const i=headers.findIndex(h=>h.includes(c)); if(i>=0) return i; } return -1; }
+function isDispatchDept(deptName){ return /派遣/.test(String(deptName||'')); }
 function getWH(deptId){
   if(!deptId) return 'MF';
   const d=deptId.toUpperCase();
