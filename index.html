@@ -139,10 +139,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .subdept-box{margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)}
 .subdept-title{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2)}
 .sdr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.sdname{width:90px;flex-shrink:0;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sdtrack{flex:1;height:6px;background:var(--border2);border-radius:4px;overflow:hidden;opacity: 0.6}
+.sdname{width:108px;flex-shrink:0;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdtrack{flex:1;min-width:24px;height:6px;background:var(--border2);border-radius:4px;overflow:hidden;opacity: 0.6}
 .sdfill{height:100%;border-radius:4px}
-.sdval{font-size:11px;color:var(--text);font-weight:600;width:45px;text-align:right;font-family:var(--mono)}
+.sdval{font-size:11px;color:var(--text);font-weight:600;width:52px;flex-shrink:0;white-space:nowrap;text-align:right;font-family:var(--mono)}
 
 /* ===== Progress Bar Rows ===== */
 .bar-row{display:flex;align-items:center;gap:16px;margin-bottom:12px}
@@ -1154,8 +1154,8 @@ function fillSelects(){
   const whs=[...new Set(store.employees.map(e=>e.warehouse))].sort();
   [['riskA','f-riskA-dept','f-riskA-wh'],['riskB','f-riskB-dept','f-riskB-wh'],['maintain','f-mt-dept','f-mt-wh']].forEach(([,di,wi])=>{
     const ds=document.getElementById(di); const ws2=document.getElementById(wi);
-    if(ds) ds.innerHTML='<option value="">全部部門</option>'+depts.map(d=>`<option value="${d}">${d}</option>`).join('');
-    if(ws2) ws2.innerHTML='<option value="">全部倉別</option>'+whs.map(w=>`<option value="${w}">${w}</option>`).join('');
+    if(ds) ds.innerHTML='<option value="">全部子部門</option>'+depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+    if(ws2) ws2.innerHTML='<option value="">全部部門</option>'+whs.map(w=>`<option value="${w}">${w}</option>`).join('');
   });
 }
 
@@ -1761,30 +1761,37 @@ function closeSidebar(){
 
 function toggleInfo(e, id){
   e.stopPropagation();
-  document.querySelectorAll('.info-pop.open').forEach(p=>{ if(p.id!==id) p.classList.remove('open'); });
+  document.querySelectorAll('.info-pop.open').forEach(p=>{ if(p.id!==id){ p.classList.remove('open'); p.style.width=''; } });
   const el = document.getElementById(id);
   if(!el) return;
   const willOpen = !el.classList.contains('open');
   el.classList.toggle('open');
-  if(willOpen){
-    el.classList.remove('align-left','align-right');
-    // 暫時量測寬度與位置，避免 popup 超出視窗左右邊界
-    const wrap = el.closest('.info-wrap');
-    if(wrap){
-      const wrapRect = wrap.getBoundingClientRect();
-      const popWidth = el.offsetWidth || 280;
-      const halfPop = popWidth/2;
-      const margin = 12;
-      if(wrapRect.left + wrapRect.width/2 - halfPop < margin){
-        el.classList.add('align-left');
-      } else if(wrapRect.left + wrapRect.width/2 + halfPop > window.innerWidth - margin){
-        el.classList.add('align-right');
-      }
-    }
+  if(!willOpen){ el.style.width=''; return; }
+  el.classList.remove('align-left','align-right');
+  el.style.width='';
+  // 邊界以「自己所在的卡片」為準，不是整個視窗——三欄並排時光比對視窗寬度，popup還是會蓋到隔壁卡片
+  const wrap = el.closest('.info-wrap');
+  if(!wrap) return;
+  const container = wrap.closest('.card') || document.body;
+  const containerRect = container.getBoundingClientRect();
+  const margin = 12;
+  const leftBound = Math.max(containerRect.left, 0) + margin;
+  const rightBound = Math.min(containerRect.right, window.innerWidth) - margin;
+  const availWidth = Math.max(160, rightBound - leftBound);
+  const naturalWidth = el.offsetWidth || 280;
+  const popWidth = Math.min(naturalWidth, availWidth);
+  if(popWidth < naturalWidth) el.style.width = popWidth + 'px';
+  const wrapRect = wrap.getBoundingClientRect();
+  const halfPop = popWidth/2;
+  const center = wrapRect.left + wrapRect.width/2;
+  if(center - halfPop < leftBound){
+    el.classList.add('align-left');
+  } else if(center + halfPop > rightBound){
+    el.classList.add('align-right');
   }
 }
 document.addEventListener('click', ()=>{
-  document.querySelectorAll('.info-pop.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.info-pop.open').forEach(p=>{ p.classList.remove('open'); p.style.width=''; });
 });
 </script>
 </body>
