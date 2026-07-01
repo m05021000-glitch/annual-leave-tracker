@@ -511,13 +511,13 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 
   <div class="card">
     <div class="card-title">上傳新資料
-      <span class="sub">支援 Excel（請注意需上傳.xls）</span>
-      <button class="btn" style="margin-left:auto" onclick="downloadTemplate()">↓ 下載標準模板</button>
+      <span class="sub">支援 CSV / Excel（.xlsx）</span>
+      <button class="btn" style="margin-left:auto" onclick="downloadTemplate()">↓ 下載標準模板 CSV</button>
     </div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-      ・Excel（一般明細）：同員編自動覆蓋，新員編自動新增，其他部門資料保留<br>
-      ・峰形「年度休假天數明細表」：視為「運輸」部門人員，同員編自動覆蓋、新增<br>
-      ・震旦雲「年度特休一覽表」：<b style="color:var(--red)">會整份覆蓋目前所有員工資料</b>，上傳前會先跳出確認視窗
+      ・<b>震旦雲「年度特休一覽表」.xls / .xlsx</b>：<b style="color:var(--red)">整份覆蓋所有員工資料</b>，上傳前會跳出確認視窗。每月從震旦雲系統匯出後直接上傳即可，支援 .xls 與 .xlsx 兩種格式<br>
+      ・<b>標準模板 CSV / Excel（一般明細）</b>：點右上角「下載標準模板 CSV」取得格式，適合手動補登個別人員資料。同員編自動覆蓋，新員編自動新增，不影響其他部門資料<br>
+      ・<b>年度休假天數明細表（英文部門版 .xlsx）</b>：運輸倉專用，同員編自動覆蓋、新增
     </div>
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
       ondragover="event.preventDefault();this.classList.add('drag')"
@@ -525,7 +525,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
       ondrop="handleDrop(event)">
       <input type="file" id="file-input" accept=".csv,.xlsx,.xls" multiple onchange="handleFiles(this.files)">
       <span class="upload-label">點此選擇檔案，或拖曳至此</span>
-      <span class="upload-sub">支援.xls檔案</span>
+      <span class="upload-sub">支援同時上傳多個檔案（CSV / Excel）</span>
     </div>
     <div class="upload-list" id="upload-list"></div>
     <div class="merge-log" id="merge-log" style="display:none"></div>
@@ -1391,15 +1391,17 @@ function handleFiles(files){
   Array.from(files).forEach(f=>processFile(f));
 }
 
-// ---- 震旦雲「年度特休一覽表」Excel 解析----
+// ---- 震旦雲「年度特休一覽表」Excel 解析（取代舊版 PDF 座標解析）----
 // 固定欄位結構：A=部門編號 C=部門 D=員工編號 F=姓名 J=延長(h) K=年度可休(h) L=合計(h) M=已休(h) N=未休(h) P=備註
 function isAnnualLeaveSheet(rows){
   if(rows.length < 4) return false;
+  // .xls 格式：rows[1][0] = '年度特休一覽表'，標題在 rows[5]
   const r2 = String(rows[1]?.[0] || '').trim();
   if(r2.includes('年度特休一覽表')){
     const r6 = (rows[5]||[]).map(c=>String(c||'').trim());
     return r6.includes('部門編號') && r6.includes('員工編號');
   }
+  // .xlsx 格式：rows[1] 直接是標題行，rows[2] 有延長/年度可休子標題
   const r1 = (rows[1]||[]).map(c=>String(c||'').trim());
   const r3 = (rows[2]||[]).map(c=>String(c||'').trim());
   return r1.includes('部門編號') && r1.includes('員工編號') &&
@@ -1413,8 +1415,9 @@ function xlsFnum(v){
 function parseAnnualLeaveSheet(rows){
   const groups = {};
   const order = [];
-  const r2 = String(rows[1]?.[0] || '').trim();
-  const dataStartRow = r2.includes('年度特休一覽表') ? 7 : 3;
+  // 偵測格式：.xls 有多列標題所以資料從 index 7 開始，.xlsx 直接從 index 3 開始
+  const _r2 = String(rows[1]?.[0] || '').trim();
+  const dataStartRow = _r2.includes('年度特休一覽表') ? 7 : 3;
   for(let i=dataStartRow;i<rows.length;i++){
     const row = rows[i]; if(!row) continue;
     const dept_id = String(row[0]||'').trim();
@@ -1475,7 +1478,7 @@ async function processFile(file){
   const statEl=document.getElementById(`stat-${itemId}`);
 
   if(ext==='pdf'){
-    statEl.textContent='請用震旦雲匯出的 Excel版本「年度特休一覽表」';
+    statEl.textContent='✗ 已停用 PDF 上傳，請改用震旦雲匯出的 Excel（.xlsx）版本「年度特休一覽表」';
     statEl.style.color='var(--red)';
     progEl.style.width='100%';
     return;
