@@ -1142,7 +1142,7 @@ function initDeptBars(){
         <div class="bar-marker" style="left:${TIME_PCT.toFixed(2)}%"></div>
       </div>
       <span class="bar-pct" style="color:${col}">${pct.toFixed(1)}%</span>
-      <span style="font-size:11px;color:var(--text3);white-space:nowrap">${normal}/${total}人</span>
+      <span style="font-size:11px;color:var(--text3);white-space:nowrap;width:56px;flex-shrink:0;text-align:right;font-family:var(--mono)">${normal}/${total}人</span>
     </div>`;
   });
   document.getElementById('dept-bars').innerHTML=html;
