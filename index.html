@@ -150,7 +150,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sdval{font-size:11px;color:var(--text);font-weight:600;width:52px;flex-shrink:0;white-space:nowrap;text-align:right;font-family:var(--mono)}
 
 /* ===== Progress Bar Rows ===== */
-.bar-row{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .bar-label{font-size:13px;color:var(--text);width:60px;flex-shrink:0;font-weight:600}
 .bar-track{flex:1;height:12px;background:var(--surface2);border-radius:6px;position:relative}
 .bar-fill{height:100%;border-radius:6px;transition: width 0.4s ease}
@@ -308,7 +308,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
     <div class="kpi">
       <div class="kpi-label">休假落後人數
         <span class="info-wrap"><button class="info-btn" onclick="toggleInfo(event,'info-k-risk')">i</button>
-          <div class="info-pop" id="info-k-risk"><div class="ip-def">落差 = 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度</div><ul><li>落差 &gt; 20%：休假速度明顯落後</li><li>包含完全尚未排休的人</li><li>維持現況，年底恐有大量剩餘</li></ul></div>
+          <div class="info-pop" id="info-k-risk"><div class="ip-def">落差 = 時間進度（<span id="time-pct-label-1">41.7%</span>）− 已休進度</div><ul><li>落差 &gt; 20%：休假速度明顯落後</li><li>包含完全尚未排假的人</li><li>維持現況，年底恐有大量剩餘</li></ul></div>
         </span>
       </div>
       <div class="kpi-val red" id="k-risk">—<span>人</span></div>
@@ -374,7 +374,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
       </div>
     </div>
     <div style="margin-top:18px" id="dept-bars"></div>
-    <div style="font-size:12px;color:var(--text3);margin-top:12px">灰色線 = <span id="month-label-3">5月時間進度（41.7%）</span>｜綠：達標，橘：落後但差距 ≤ 20%，紅：落後超過 20%。每格右側顯示達標人數 / 總人數。</div>
+    <div style="font-size:12px;color:var(--text3);margin-top:12px">綠＝達標（≥時間進度）｜橘＝接近（差距≤20%）｜紅＝落後（差距&gt;20%）｜淡紅底＝落後人數佔比</div>
   </div>
 </div>
 
@@ -382,7 +382,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
   <div class="kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
     <div class="kpi"><div class="kpi-label">預估全員年底剩餘</div><div class="kpi-val red" id="p-total-h">—</div><div class="kpi-sub" id="p-total-d"></div></div>
     <div class="kpi"><div class="kpi-label">其中遞延假（年底到期）</div><div class="kpi-val amber" id="p-ext-h">—</div><div class="kpi-sub" id="p-ext-d"></div></div>
-    <div class="kpi"><div class="kpi-label">尚未排休</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">已休=0，無法估算消化速度</div></div>
+    <div class="kpi"><div class="kpi-label">尚未排假</div><div class="kpi-val" id="p-excl">—</div><div class="kpi-sub">已休=0，無法估算消化速度</div></div>
   </div>
   <div class="card">
     <div class="card-title">各部門年底預測 — 溫度計 <span class="beta">BETA</span>
@@ -410,7 +410,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
 
 <div id="tab-riskA" style="display:none">
   <div class="card">
-    <div class="card-title">狀況A-休假落後 <span class="sub">休假落差&gt;20%（含完全尚未排休），共 <span id="cnt-riskA">0</span> 人</span></div>
+    <div class="card-title">狀況A-休假落後 <span class="sub">休假落差&gt;20%（含完全尚未排假），共 <span id="cnt-riskA">0</span> 人</span></div>
     <div class="toolbar">
       <input placeholder="搜尋姓名 / 員編" id="f-riskA-q" oninput="ST.riskA.p=1;renderRiskA()">
       <select id="f-riskA-wh" onchange="ST.riskA.p=1;renderRiskA()"><option value="">全部部門</option></select>
@@ -759,7 +759,7 @@ async function buildMails() {
 
     let detail = `【休假落差 > 20%，共 ${emps.length} 人】\n`;
     emps.forEach(e => {
-      const tag = e.used_hours === 0 ? '（尚未排休）' : '';
+      const tag = e.used_hours === 0 ? '（尚未排假）' : '';
       detail += `  ▸ ${e.name}（${e.dept_name}）｜合計可休 ${e.total_entitled}h｜已休 ${e.used_hours}h｜未休 ${e.remaining}h｜落差 ${e.gap_pct}%${tag}${e.has_expiring ? '（含遞延假）' : ''}\n`;
     });
 
@@ -768,12 +768,12 @@ async function buildMails() {
 
 以下為截至 ${period} 的部門年假使用狀況通知，請協助確認與追蹤。
 
-本次共有 ${emps.length} 位同仁休假落差超過 20%${unusedCount ? `（其中 ${unusedCount} 人尚未排休）` : ''}${extCount ? `，${extCount} 人持有遞延假尚未消化` : ''}。
+本次共有 ${emps.length} 位同仁休假落差超過 20%${unusedCount ? `（其中 ${unusedCount} 人尚未排假）` : ''}${extCount ? `，${extCount} 人持有遞延假尚未消化` : ''}。
 
 ${detail}
 說明：
 ・「落差」係指已休進度落後於時間進度超過 20%，若維持現況年底恐有大量剩餘假期，請主管協助安排休假。
-・「尚未排休」係指截至資料日期尚無任何休假紀錄，請主管確認同仁是否已有排休計畫，或資料是否需要更新。
+・「尚未排假」係指截至資料日期尚無任何休假紀錄，請主管確認同仁是否已有排休計畫，或資料是否需要更新。
 ・遞延假（2025年遞延至2026年）應優先安排消化，避免年底代金損失。
 ・「合計可休時數」= 2026年度配額 ＋ 2025年遞延假，兩者合併計算，並非只計算當年度。
 
@@ -792,7 +792,7 @@ ${sender}`;
       <div class="mail-card-hdr">
         ✉ ${wh} 倉別
         <span class="badge b-red">休假落後 ${emps.length} 人</span>
-        ${unusedCount ? `<span class="badge b-amber">尚未排休 ${unusedCount} 人</span>` : ''}
+        ${unusedCount ? `<span class="badge b-amber">尚未排假 ${unusedCount} 人</span>` : ''}
         ${extCount ? `<span class="badge b-purple">遞延假 ${extCount} 人</span>` : ''}
       </div>
       <div class="mail-field"><span class="mf-lbl">收件人</span><span class="mf-val" id="mail-to-${idx}">${toEmail}</span><button class="btn" style="padding:2px 8px; font-size:11px" onclick="cpEl('mail-to-${idx}',this)">複製</button></div>
@@ -838,7 +838,7 @@ function dlAttachment(wh, idx) {
     e.total_entitled, e.annual_hours, e.ext_hours,
     e.used_hours, e.remaining, e.gap_pct + '%',
     '休假落後',
-    e.used_hours === 0 ? '尚未排休' : '',
+    e.used_hours === 0 ? '尚未排假' : '',
     e.has_expiring ? '是' : '否'
   ]));
   const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -1129,20 +1129,22 @@ function initDeptBars(){
   let html='';
   keys.forEach(k=>{
     const s=ws[k]; if(!s.total) return;
-    // 人頭版：達標人數（normal）÷ 總人數
     const normal = s.normal||0;
+    const atRisk = (s.high_risk||0) + (s.zero||0);
     const total = s.total||0;
     const pct = total>0 ? normal/total*100 : 0;
-    // 顏色跟著時間進度動：落差>20% → 紅，有落差但≤20% → 橘，達標 → 綠
+    const riskPct = 100 - pct;
     const col = pct < (TIME_PCT-20) ? 'var(--red)' : pct < TIME_PCT ? 'var(--amber)' : 'var(--green)';
-    html+=`<div class="bar-row">
+    html+=`<div class="bar-row" style="align-items:center">
       <span class="bar-label">${k}</span>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${col}"></div>
-        <div class="bar-marker" style="left:${TIME_PCT.toFixed(2)}%"></div>
+      <div class="bar-track" style="position:relative;overflow:hidden;height:14px;border-radius:4px">
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:var(--red-bg)"></div>
+        <div style="position:absolute;top:0;left:0;width:${pct.toFixed(1)}%;height:100%;background:${col};border-radius:4px;transition:width .4s ease"></div>
       </div>
-      <span class="bar-pct" style="color:${col}">${pct.toFixed(1)}%</span>
-      <span style="font-size:11px;color:var(--text3);white-space:nowrap;width:56px;flex-shrink:0;text-align:right;font-family:var(--mono)">${normal}/${total}人</span>
+      <div style="flex-shrink:0;width:130px;text-align:left;padding-left:12px;line-height:1.35">
+        <div style="font-size:13px;font-weight:700;color:${col};font-family:var(--mono)">${pct.toFixed(1)}%</div>
+        <div style="font-size:11px;color:var(--text3)">達標${normal} · 落後${atRisk}</div>
+      </div>
     </div>`;
   });
   document.getElementById('dept-bars').innerHTML=html;
@@ -1243,7 +1245,7 @@ function renderRiskA(){
       <td style="font-family:var(--mono)">${e.used_hours}</td>
       <td style="font-family:var(--mono)">${e.remaining}</td>
       <td style="color:${gCol};font-weight:600;font-family:var(--mono)">${Math.abs(e.gap_pct)}%<br><span style="font-size:11px;font-weight:400;color:var(--text3)">${gSign} ${Math.abs(e.gap_days)}天</span></td>
-      <td>${e.used_hours===0?'<span class="badge b-amber">尚未排休</span>':''}${e.has_expiring?'<span class="badge b-purple">遞延假</span>':''}</td>
+      <td>${e.used_hours===0?'<span class="badge b-amber">尚未排假</span>':''}${e.has_expiring?'<span class="badge b-purple">遞延假</span>':''}</td>
     </tr>`;
   }).join('');
   document.getElementById('pg-riskA').innerHTML=pgHTML('riskA',data.length);
@@ -1753,7 +1755,7 @@ function downloadTemplate(){
 function exportExcelForPA(){
   const data=getFiltered('riskA');
   if(!data.length){alert('目前沒有休假落後人員！');return;}
-  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.warehouse,'子部門':e.dept_name,'狀態':'休假落後','備註':e.used_hours===0?'尚未排休':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
+  const rows=data.map(e=>({'員編':e.emp_id,'姓名':e.name,'部門':e.warehouse,'子部門':e.dept_name,'狀態':'休假落後','備註':e.used_hours===0?'尚未排假':'','年度可休時數':e.total_entitled,'遞延假時數':e.ext_hours,'未休時數':e.remaining,'落差百分比':e.gap_pct+'%','主管信箱':''}));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'狀況A-休假落後');
