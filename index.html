@@ -365,7 +365,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
   </div>
 
   <div class="card">
-    <div class="card-title">各部門已休進度 vs 時間進度（<span id="month-label-2">5月 41.7%</span>）</div>
+    <div class="card-title">各部門達標人數比例 <span class="sub">落差 ≤ 20% 視為正常｜時間進度 <span id="month-label-2">5月 41.7%</span></span></div>
     <div id="pref-wrap">
       <button class="pref-btn" onclick="togglePref()">▸ 1–12月進度參考表</button>
       <div class="pref-box" id="pref-box">
@@ -374,7 +374,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
       </div>
     </div>
     <div style="margin-top:18px" id="dept-bars"></div>
-    <div style="font-size:12px;color:var(--text3);margin-top:12px">灰色線 = <span id="month-label-3">5月時間進度（41.7%）</span>。條狀短於灰線代表進度落後，顏色越紅風險越高。</div>
+    <div style="font-size:12px;color:var(--text3);margin-top:12px">灰色線 = <span id="month-label-3">5月時間進度（41.7%）</span>｜綠：達標，橘：落後但差距 ≤ 20%，紅：落後超過 20%。每格右側顯示達標人數 / 總人數。</div>
   </div>
 </div>
 
@@ -1128,9 +1128,13 @@ function initDeptBars(){
   const keys=Object.keys(ws).sort();
   let html='';
   keys.forEach(k=>{
-    const s=ws[k]; if(!s.total_h) return;
-    const pct=s.used_h/s.total_h*100;
-    const col=pct<21.7?'var(--red)':pct<35?'var(--amber)':'var(--green)';
+    const s=ws[k]; if(!s.total) return;
+    // 人頭版：達標人數（normal）÷ 總人數
+    const normal = s.normal||0;
+    const total = s.total||0;
+    const pct = total>0 ? normal/total*100 : 0;
+    // 顏色跟著時間進度動：落差>20% → 紅，有落差但≤20% → 橘，達標 → 綠
+    const col = pct < (TIME_PCT-20) ? 'var(--red)' : pct < TIME_PCT ? 'var(--amber)' : 'var(--green)';
     html+=`<div class="bar-row">
       <span class="bar-label">${k}</span>
       <div class="bar-track">
@@ -1138,6 +1142,7 @@ function initDeptBars(){
         <div class="bar-marker" style="left:${TIME_PCT.toFixed(2)}%"></div>
       </div>
       <span class="bar-pct" style="color:${col}">${pct.toFixed(1)}%</span>
+      <span style="font-size:11px;color:var(--text3);white-space:nowrap">${normal}/${total}人</span>
     </div>`;
   });
   document.getElementById('dept-bars').innerHTML=html;
