@@ -426,7 +426,7 @@ tr:hover td{background:rgba(241,243,245,0.4)}
         <th onclick="srt('riskA','name')">姓名</th>
         <th onclick="srt('riskA','warehouse')">部門</th>
         <th onclick="srt('riskA','dept_name')">子部門</th>
-        <th onclick="srt('riskA','total_entitled')">年度可休(h)</th>
+        <th onclick="srt('riskA','total_entitled')">年度可休(h)<span class="info-wrap" style="vertical-align:middle"><button class="info-btn" onclick="event.stopPropagation();toggleInfo(event,'info-th-total')">i</button><div class="info-pop align-left" id="info-th-total"><div class="ip-def">合計可休時數</div><ul><li>= 2026年度配額 ＋ 2025年遞延假</li><li>兩者合併計算，並非只計算當年度</li></ul></div></span></th>
         <th onclick="srt('riskA','ext_hours')">遞延假(h)</th>
         <th onclick="srt('riskA','used_hours')">已休(h)</th>
         <th onclick="srt('riskA','remaining')">未休(h)</th>
@@ -775,6 +775,7 @@ ${detail}
 ・「落差」係指已休進度落後於時間進度超過 20%，若維持現況年底恐有大量剩餘假期，請主管協助安排休假。
 ・「尚未排休」係指截至資料日期尚無任何休假紀錄，請主管確認同仁是否已有排休計畫，或資料是否需要更新。
 ・遞延假（2025年遞延至2026年）應優先安排消化，避免年底代金損失。
+・「合計可休時數」= 2026年度配額 ＋ 2025年遞延假，兩者合併計算，並非只計算當年度。
 
 依公司年假預先規劃機制，請協助引導同仁合理安排休假，感謝您的配合。
 
