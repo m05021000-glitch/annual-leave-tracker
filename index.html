@@ -365,7 +365,8 @@ tr:hover td{background:rgba(241,243,245,0.4)}
   </div>
 
   <div class="card">
-    <div class="card-title">各部門達標人數比例 <span class="sub">
+    <div class="card-title">各部門達標人數比例 <span class="sub">落差 ≤ 20% 視為正常｜時間進度 <span id="month-label-2">5月 41.7%</span></span></div>
+    <div id="pref-wrap">
       <button class="pref-btn" onclick="togglePref()">▸ 1–12月進度參考表</button>
       <div class="pref-box" id="pref-box">
         <div style="font-size:12px;color:var(--text2);margin-bottom:6px">各月份理想進度 = 月份 ÷ 12。已休進度達到或超過即代表正常。</div>
@@ -688,7 +689,9 @@ const DEFAULT_MGR = {
   HA:      { name: 'Bill',   email: 'bill.cheng@allyls.com.tw' },
   OMEGA2: { name: 'Roger',  email: 'Roger.Tien@allysupplychain.com' },
   C5:      { name: 'Shawn',  email: 'shawn@allyls.com.tw' },
-  MF:      { name: 'Jackie', email: '' }
+  MF:      { name: 'Jackie', email: '' },
+  FM:      { name: 'Robin',  email: 'FM-Robin.dong@allyls.com.tw' },
+  C1:      { name: 'Roger',  email: 'Roger.Tien@allysupplychain.com' }
 };
 
 async function getMgrTableAsync() {
@@ -877,7 +880,8 @@ const WARN_GAP = 20;
 const COLORS = {
   WS:'#E24B4A', B3:'#378ADD', B9:'#7F77DD', EC:'#1D9E75',
   DY1F:'#EF9F27', DY2F:'#E8834A', HASS:'#1A9EA8', HA:'#D4537E',
-  OMEGA2:'#639922', C5:'#BA7517', MF:'#B4B2A9'
+  OMEGA2:'#639922', C5:'#BA7517', MF:'#B4B2A9',
+  FM:'#2E8B57', C1:'#5B8DB8'
 };
 
 const ST = {
@@ -1700,6 +1704,9 @@ function getWH(deptId){
   if(d==='HA'||d.startsWith('HA-')) return 'HA';
   if(d.startsWith('OMEGA')) return 'OMEGA2';
   if(d.startsWith('C5')) return 'C5';
+  if(d.startsWith('FM')) return 'FM';
+  if(d.startsWith('C1')) return 'C1';
+  if(d.startsWith('C4')) return 'OMEGA2';
   return 'MF';
 }
 
